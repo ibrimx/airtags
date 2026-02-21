@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro"
 import { Client } from "@notionhq/client"
-import { uploadImageToR2 } from "@/lib/uploadToR2"
+import { uploadImageToR2 } from "@/lib/r2/uploadToR2"
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
