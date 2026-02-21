@@ -16,9 +16,7 @@ const SubtitleTag = isPost ? 'div' : 'h2'
 
 <header
   class:list={[
-    isPost
-    ? 'mb-10.8'
-    : 'mb-10.5',
+    isPost ? 'mb-10.8' : 'mb-10.5',
     'lg:(uno-desktop-column top-20) cjk:tracking-0.02em',
   ]}
 >
@@ -30,7 +28,6 @@ const SubtitleTag = isPost ? 'div' : 'h2'
       'font-bold font-title',
     ]}
   >
-    <!-- Fix text cropping issues during view transition on iOS by adding a div tag -->
     <div
       class="box-content inline-block pr-1"
       transition:name={`site-title-${currentLang}`}
@@ -39,8 +36,13 @@ const SubtitleTag = isPost ? 'div' : 'h2'
       <a
         id="site-title-link"
         href={getLocalizedPath('/')}
+        class="inline-block"
       >
-          {headerTitle}
+        <img
+          src="/logo.png"
+          alt={headerTitle}
+          class="w-16 h-16 rounded-full object-cover border border-white/10 shadow-lg"
+        />
       </a>
     </div>
   </TitleTag>
@@ -48,9 +50,7 @@ const SubtitleTag = isPost ? 'div' : 'h2'
   {headerSubtitle && (
     <SubtitleTag
       class:list={[
-        isPost
-          ? `op-0 lg:op-100`
-          : 'w-75% lg:w-full',
+        isPost ? `op-0 lg:op-100` : 'w-75% lg:w-full',
         'text-3.5 c-secondary font-navbar lg:text-4',
       ]}
       aria-hidden={isPost}
