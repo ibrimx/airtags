@@ -40,19 +40,23 @@ export default function SearchOverlay({ posts }: Props) {
   }, [query, posts])
 
   const grouped = useMemo(() => groupByYear(filtered), [filtered])
+  const flatResults = filtered
 
-  const flatResults = useMemo(() => filtered, [filtered])
+  // 🔹 ربط زر الهيدر
+  useEffect(() => {
+    const btn = document.getElementById("open-search")
+    if (!btn) return
 
+    const handler = () => setOpen(true)
+
+    btn.addEventListener("click", handler)
+    return () => btn.removeEventListener("click", handler)
+  }, [])
+
+  // 🔹 التحكم بالكيبورد
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "/") {
-        e.preventDefault()
-        setOpen(true)
-      }
-
-      if (e.key === "Escape") {
-        setOpen(false)
-      }
+      if (e.key === "Escape") setOpen(false)
 
       if (!open) return
 
@@ -77,91 +81,101 @@ export default function SearchOverlay({ posts }: Props) {
     return () => window.removeEventListener("keydown", onKey)
   }, [open, flatResults, active])
 
+  if (!open) return null
+
   return (
-    <>
-      <input
-        placeholder="Search posts..."
-        onFocus={() => setOpen(true)}
-        onChange={(e) => {
-          setQuery(e.target.value)
-          setActive(0)
-        }}
+    <div
+      onClick={() => setOpen(false)}
+      style={{
+        position: "fixed",
+        inset: 0,
+        backdropFilter: "blur(18px)",
+        background: "rgba(0,0,0,0.65)",
+        zIndex: 999,
+        paddingTop: "10vh",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
         style={{
-          width: "100%",
-          padding: "14px 18px",
-          borderRadius: 14,
+          width: "min(720px, 92%)",
+          margin: "0 auto",
+          background: "#111",
+          borderRadius: 24,
           border: "1px solid rgba(255,255,255,0.08)",
-          background: "rgba(255,255,255,0.05)",
-          color: "white",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.6)",
+          overflow: "hidden",
         }}
-      />
-
-      {open && (
-        <div
-          onClick={() => setOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backdropFilter: "blur(20px)",
-            background: "rgba(0,0,0,0.6)",
-            zIndex: 100,
-            paddingTop: 100,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: 720,
-              margin: "0 auto",
-              background: "rgba(20,20,20,0.9)",
-              borderRadius: 20,
-              padding: 24,
+      >
+        {/* Input */}
+        <div style={{ padding: 20 }}>
+          <input
+            autoFocus
+            placeholder="Search posts..."
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setActive(0)
             }}
-          >
-            {grouped.map(([year, items]) => (
-              <div key={year} style={{ marginBottom: 24 }}>
-                <div
-                  style={{
-                    opacity: 0.5,
-                    marginBottom: 12,
-                    fontSize: 14,
-                  }}
-                >
-                  {year}
-                </div>
-
-                {items.map((post) => {
-                  const index = flatResults.findIndex(
-                    (p) => p.slug === post.slug
-                  )
-
-                  return (
-                    <div
-                      key={post.slug}
-                      onMouseEnter={() => setActive(index)}
-                      onClick={() =>
-                        (window.location.href = `/posts/${post.slug}`)
-                      }
-                      style={{
-                        padding: "14px 16px",
-                        borderRadius: 12,
-                        marginBottom: 6,
-                        cursor: "pointer",
-                        background:
-                          index === active
-                            ? "rgba(255,255,255,0.1)"
-                            : "transparent",
-                      }}
-                    >
-                      {post.title}
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
-          </div>
+            style={{
+              width: "100%",
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "white",
+              fontSize: 18,
+            }}
+          />
         </div>
-      )}
-    </>
+
+        <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+
+        {/* Results */}
+        <div style={{ padding: 20, maxHeight: "60vh", overflowY: "auto" }}>
+          {grouped.map(([year, items]) => (
+            <div key={year} style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  opacity: 0.4,
+                  fontSize: 13,
+                  marginBottom: 12,
+                }}
+              >
+                {year}
+              </div>
+
+              {items.map((post) => {
+                const index = flatResults.findIndex(
+                  (p) => p.slug === post.slug
+                )
+
+                return (
+                  <div
+                    key={post.slug}
+                    onMouseEnter={() => setActive(index)}
+                    onClick={() =>
+                      (window.location.href = `/posts/${post.slug}`)
+                    }
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 12,
+                      marginBottom: 6,
+                      cursor: "pointer",
+                      background:
+                        index === active
+                          ? "rgba(255,255,255,0.08)"
+                          : "transparent",
+                      transition: "background 0.15s ease",
+                    }}
+                  >
+                    {post.title}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
