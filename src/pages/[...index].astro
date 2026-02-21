@@ -6,6 +6,7 @@ import SearchOverlay from "@/components/search/SearchOverlay"
 import { defaultLocale, moreLocales } from "@/config"
 import { getPinnedPosts, getPostsByYear } from "@/utils/content"
 import { getPosts } from "@/lib/notion/posts"
+import { Post } from "@/lib/notion/type"
 
 /* ---------------------------
    Static Paths
@@ -44,7 +45,8 @@ const pinnedPosts = await getPinnedPosts(lang)
 const postsByYear = await getPostsByYear(lang)
 
 /* Notion posts for search */
-let searchPosts: unknown[] = []
+
+let searchPosts: Post[] = []
 
 if (import.meta.env.NOTION_TOKEN) {
   searchPosts = await getPosts()
