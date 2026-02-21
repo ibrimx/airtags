@@ -8,6 +8,9 @@ import GithubCard from '@/components/Widgets/GithubCard.astro'
 import ImageZoom from '@/components/Widgets/ImageZoom.astro'
 import MediaEmbed from '@/components/Widgets/MediaEmbed.astro'
 import SoundEffect from '@/components/Widgets/SoundEffect.astro'
+import SearchOverlay from '@/components/search/SearchOverlay'
+import type { Post } from '@/lib/notion/types'
+import { getPosts } from '@/lib/notion/posts'
 import themeConfig from '@/config'
 import Head from '@/layouts/Head.astro'
 import { getPageInfo } from '@/utils/page'
@@ -28,10 +31,19 @@ interface Props {
 
 const { postTitle, postDescription, postSlug, supportedLangs = [] } = Astro.props
 const { isPost } = getPageInfo(Astro.url.pathname)
-const fontStyle = themeConfig.global.fontStyle === 'serif' ? 'font-serif' : 'font-sans'
-const MarginBottom = isPost && themeConfig.comment?.enabled
-  ? 'mb-10' // Post page with comment
-  : 'mb-12' // Other pages without comment
+
+const fontStyle =
+  themeConfig.global.fontStyle === 'serif' ? 'font-serif' : 'font-sans'
+
+const MarginBottom =
+  isPost && themeConfig.comment?.enabled ? 'mb-10' : 'mb-12'
+
+// Prevent build crash if Notion token is missing
+let searchPosts: Post[] = []
+
+if (import.meta.env.NOTION_TOKEN) {
+  searchPosts = await getPosts()
+}
 ---
 
 <html
@@ -42,6 +54,7 @@ const MarginBottom = isPost && themeConfig.comment?.enabled
   ]}
 >
   <Head {postTitle} {postDescription} {postSlug} />
+
   <body>
     <div
       class="mx-auto max-w-205.848 min-h-vh w-full min-h-dvh"
@@ -50,11 +63,17 @@ const MarginBottom = isPost && themeConfig.comment?.enabled
     >
       <Header />
       <Navbar />
+
+      <!-- Search Overlay (global, mounted once) -->
+      <SearchOverlay posts={searchPosts} client:load />
+
       <main class={MarginBottom}>
         <slot />
       </main>
+
       <Footer />
     </div>
+
     <Button supportedLangs={supportedLangs} />
     <SoundEffect />
     <CodeCopyButton />
