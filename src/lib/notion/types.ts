@@ -4,7 +4,7 @@ export interface Post {
   slug: string
   excerpt?: string
   cover?: string
-  published: boolean
+  published?: boolean
   date?: string
 }
 
