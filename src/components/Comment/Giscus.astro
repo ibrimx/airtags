@@ -56,6 +56,10 @@ function getThemeUrl() {
 
 function setupGiscus() {
   const giscusContainer = document.getElementById('giscus')
+  if (!giscusContainer) {
+    return
+  }
+
   giscusContainer.innerHTML = ''
 
   const currentPath = window.location.pathname
@@ -91,15 +95,21 @@ function setupGiscus() {
 }
 
 function updateGiscusTheme() {
-  const iframe = document.querySelector('.giscus-frame')
-  if (!iframe || !iframe.contentWindow) {
+  const iframe = document.querySelector('iframe.giscus-frame')
+  if (!iframe) {
     return
   }
 
-  iframe.contentWindow.postMessage(
-    { giscus: { setConfig: { theme: getThemeUrl() } } },
-    'https://giscus.app',
-  )
+  try {
+    iframe.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: getThemeUrl() } } },
+      'https://giscus.app',
+    )
+  }
+  catch (error) {
+    // Silently fail if cross-origin postMessage is blocked
+    // This can happen when the iframe hasn't fully loaded or cross-origin restrictions apply
+  }
 }
 
 document.addEventListener('astro:page-load', setupGiscus)
