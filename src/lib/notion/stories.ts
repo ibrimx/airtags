@@ -14,7 +14,7 @@ export async function getStorySlides(): Promise<StorySlide[]> {
 
   const slides: StorySlide[] = []
 
-  for (const slide: any of slidesRes.results) {
+for (const slide of slidesRes.results as any[]) { {
     const storiesRes = await notion.databases.query({
       database_id: process.env.NOTION_STORIES_DB!,
       filter: {
