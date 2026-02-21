@@ -42,22 +42,19 @@ export default function SearchOverlay({ posts }: Props) {
   const grouped = useMemo(() => groupByYear(filtered), [filtered])
   const flatResults = filtered
 
-  // 🔹 ربط زر الهيدر
+  // ربط زر الهيدر
   useEffect(() => {
     const btn = document.getElementById("open-search")
     if (!btn) return
-
     const handler = () => setOpen(true)
-
     btn.addEventListener("click", handler)
     return () => btn.removeEventListener("click", handler)
   }, [])
 
-  // 🔹 التحكم بالكيبورد
+  // التحكم بالكيبورد
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false)
-
       if (!open) return
 
       if (e.key === "ArrowDown") {
@@ -89,26 +86,49 @@ export default function SearchOverlay({ posts }: Props) {
       style={{
         position: "fixed",
         inset: 0,
-        backdropFilter: "blur(18px)",
-        background: "rgba(0,0,0,0.65)",
+        backdropFilter: "blur(20px)",
+        background: "rgba(0,0,0,0.55)",
         zIndex: 999,
-        paddingTop: "10vh",
+        paddingTop: "8vh",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "min(720px, 92%)",
+          width: "min(680px, 92%)",
           margin: "0 auto",
-          background: "#111",
-          borderRadius: 24,
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 30px 80px rgba(0,0,0,0.6)",
+          background: "#161616",
+          borderRadius: 20,
+          border: "1px solid rgba(255,255,255,0.07)",
+          boxShadow: "0 40px 100px rgba(0,0,0,0.7)",
           overflow: "hidden",
         }}
       >
-        {/* Input */}
-        <div style={{ padding: 20 }}>
+        {/* Search Input */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "16px 20px",
+          }}
+        >
+          {/* Search Icon */}
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="rgba(255,255,255,0.35)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ flexShrink: 0 }}
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+
           <input
             autoFocus
             placeholder="Search posts..."
@@ -118,12 +138,13 @@ export default function SearchOverlay({ posts }: Props) {
               setActive(0)
             }}
             style={{
-              width: "100%",
+              flex: 1,
               background: "transparent",
               border: "none",
               outline: "none",
-              color: "white",
-              fontSize: 18,
+              color: "rgba(255,255,255,0.85)",
+              fontSize: 16,
+              letterSpacing: 0.2,
             }}
           />
         </div>
@@ -131,23 +152,36 @@ export default function SearchOverlay({ posts }: Props) {
         <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
 
         {/* Results */}
-        <div style={{ padding: 20, maxHeight: "60vh", overflowY: "auto" }}>
+        <div
+          style={{
+            padding: "10px 10px",
+            maxHeight: "65vh",
+            overflowY: "auto",
+          }}
+        >
           {grouped.map(([year, items]) => (
-            <div key={year} style={{ marginBottom: 24 }}>
-              <div
-                style={{
-                  opacity: 0.4,
-                  fontSize: 13,
-                  marginBottom: 12,
-                }}
-              >
-                {year}
-              </div>
+            <div key={year}>
+              {/* Year label — only show if multiple years exist */}
+              {grouped.length > 1 && (
+                <div
+                  style={{
+                    padding: "8px 12px 4px",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.28)",
+                  }}
+                >
+                  {year}
+                </div>
+              )}
 
               {items.map((post) => {
                 const index = flatResults.findIndex(
                   (p) => p.slug === post.slug
                 )
+                const isActive = index === active
 
                 return (
                   <div
@@ -157,23 +191,68 @@ export default function SearchOverlay({ posts }: Props) {
                       (window.location.href = `/posts/${post.slug}`)
                     }
                     style={{
-                      padding: "14px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "13px 14px",
                       borderRadius: 12,
-                      marginBottom: 6,
+                      marginBottom: 2,
                       cursor: "pointer",
-                      background:
-                        index === active
-                          ? "rgba(255,255,255,0.08)"
-                          : "transparent",
-                      transition: "background 0.15s ease",
+                      background: isActive
+                        ? "rgba(255,255,255,0.07)"
+                        : "transparent",
+                      transition: "background 0.12s ease",
                     }}
                   >
-                    {post.title}
+                    {/* Arrow icon */}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={
+                        isActive
+                          ? "rgba(255,255,255,0.7)"
+                          : "rgba(255,255,255,0.25)"
+                      }
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ flexShrink: 0, transition: "stroke 0.12s" }}
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+
+                    <span
+                      style={{
+                        fontSize: 15,
+                        color: isActive
+                          ? "rgba(255,255,255,0.9)"
+                          : "rgba(255,255,255,0.6)",
+                        transition: "color 0.12s",
+                      }}
+                    >
+                      {post.title}
+                    </span>
                   </div>
                 )
               })}
             </div>
           ))}
+
+          {filtered.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px 20px",
+                color: "rgba(255,255,255,0.25)",
+                fontSize: 14,
+              }}
+            >
+              No results found
+            </div>
+          )}
         </div>
       </div>
     </div>
