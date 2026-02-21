@@ -94,39 +94,10 @@ function setupGiscus() {
   giscusContainer.appendChild(script)
 }
 
-function updateGiscusTheme() {
-  try {
-    const iframe = document.querySelector('iframe.giscus-frame')
-    if (!iframe) {
-      return
-    }
-
-    // Check if we can access the iframe's contentWindow safely
-    // Accessing contentWindow on a cross-origin iframe can throw SecurityError
-    let iframeWindow
-    try {
-      iframeWindow = iframe.contentWindow
-    }
-    catch (e) {
-      // Cannot access cross-origin iframe
-      return
-    }
-
-    if (!iframeWindow) {
-      return
-    }
-
-    iframeWindow.postMessage(
-      { giscus: { setConfig: { theme: getThemeUrl() } } },
-      'https://giscus.app',
-    )
-  }
-  catch (error) {
-    // Silently fail if any cross-origin access is blocked
-  }
-}
+// Theme updates are disabled due to cross-origin restrictions
+// Giscus iframe will use the theme specified at initialization time
+// Dynamic theme switching is not supported for cross-origin security reasons
 
 document.addEventListener('astro:page-load', setupGiscus)
-document.addEventListener('theme-changed', updateGiscusTheme)
 setupGiscus()
 </script>
