@@ -3,8 +3,10 @@ import PostList from '@/components/PostList.astro'
 import { defaultLocale, moreLocales } from '@/config'
 import Layout from '@/layouts/Layout.astro'
 import { getPinnedPosts, getPostsByYear } from '@/utils/content'
-import search from "@/components/search/SearchOverlay"
+import SearchOverlay from "@/components/search/SearchOverlay"
+import { getPosts } from "@/lib/notion/posts"
 
+const posts = await getPosts()
 export async function getStaticPaths() {
   type PathItem = {
     params: { index: string | undefined }
