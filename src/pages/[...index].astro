@@ -3,6 +3,7 @@ import PostList from '@/components/PostList.astro'
 import { defaultLocale, moreLocales } from '@/config'
 import Layout from '@/layouts/Layout.astro'
 import { getPinnedPosts, getPostsByYear } from '@/utils/content'
+import search from "@/components/search/SearchOverlay"
 
 export async function getStaticPaths() {
   type PathItem = {
@@ -44,6 +45,7 @@ const postsByYear = await getPostsByYear(lang)
     </section>
   )}
 
+  <SearchOverlay posts={posts} client:load />
   <!-- Regular Posts -->
   {[...postsByYear.entries()].map(([_year, posts]) => (
     <section class="mb-7.5">
