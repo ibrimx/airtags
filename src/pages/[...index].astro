@@ -44,7 +44,7 @@ const pinnedPosts = await getPinnedPosts(lang)
 const postsByYear = await getPostsByYear(lang)
 
 /* Notion posts for search */
-let searchPosts = []
+let searchPosts: unknown[] = []
 
 if (import.meta.env.NOTION_TOKEN) {
   searchPosts = await getPosts()
