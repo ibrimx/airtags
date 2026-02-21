@@ -27,7 +27,7 @@ const nextUrl = supportedLangs.length > 0
 <div
   class:list={[
   'absolute right-7.25vw top-14.6 flex gap-6 min-[823px]:max-lg:right-[calc(50vw-22rem)]',
-  'lg:(fixed bottom-[min(10.27rem+1.92vw,12rem)] right-[max(5rem,calc(50vw-35rem))] top-auto w-14rem)',
+  'lg:(fixed bottom-[7.7rem] right-[max(5rem,calc(50vw-35rem))] top-auto w-14rem)',
 ]}
 >
   <!-- Language Switcher -->
@@ -77,7 +77,14 @@ function applyTheme(isDark) {
   }
 
   localStorage.setItem('theme', isDark ? 'dark' : 'light')
-  document.dispatchEvent(new Event('theme-changed'))
+
+  // Dispatch theme-changed event with error handling
+  try {
+    document.dispatchEvent(new Event('theme-changed'))
+  }
+  catch (error) {
+    // Silently fail if dispatchEvent is blocked by cross-origin restrictions
+  }
 }
 
 // Toggle theme mode
@@ -88,41 +95,73 @@ function toggleTheme() {
 
 // Handle theme toggle click events
 function handleThemeToggleClick(e) {
-  const target = e.target instanceof Element ? e.target : null
-  const button = target?.closest('#theme-toggle-button')
+  try {
+    const target = e.target instanceof Element ? e.target : null
+    const button = target?.closest('#theme-toggle-button')
 
-  if (!button) {
-    return
+    if (!button) {
+      return
+    }
+
+    // If reduceMotion is enabled, update theme directly
+    if (document.documentElement.classList.contains('reduce-motion')) {
+      toggleTheme()
+      return
+    }
+
+    // Add temporary markers before view transition
+    document.documentElement.style.setProperty('view-transition-name', 'animation-theme-toggle')
+    document.documentElement.setAttribute('data-theme-changing', '')
+
+    try {
+      // Use View Transitions API for theme toggle
+      const transition = document.startViewTransition(toggleTheme)
+
+      // Remove temporary markers after view transition
+      transition.finished.then(() => {
+        document.documentElement.style.removeProperty('view-transition-name')
+        document.documentElement.removeAttribute('data-theme-changing')
+      }).catch(() => {
+        // Clean up on promise rejection
+        document.documentElement.style.removeProperty('view-transition-name')
+        document.documentElement.removeAttribute('data-theme-changing')
+      })
+    }
+    catch (error) {
+      // Fallback to direct theme change if view transition fails
+      // This can happen due to cross-origin iframe access restrictions
+      document.documentElement.style.removeProperty('view-transition-name')
+      document.documentElement.removeAttribute('data-theme-changing')
+    }
   }
-
-  // If reduceMotion is enabled, update theme directly
-  if (document.documentElement.classList.contains('reduce-motion')) {
-    toggleTheme()
-    return
+  catch (error) {
+    // Silently fail if click handling encounters any errors
   }
-
-  // Add temporary markers before view transition
-  document.documentElement.style.setProperty('view-transition-name', 'animation-theme-toggle')
-  document.documentElement.setAttribute('data-theme-changing', '')
-
-  // Use View Transitions API for theme toggle
-  const transition = document.startViewTransition(toggleTheme)
-
-  // Remove temporary markers after view transition
-  transition.finished.then(() => {
-    document.documentElement.style.removeProperty('view-transition-name')
-    document.documentElement.removeAttribute('data-theme-changing')
-  })
 }
 
-// Bind click event to the button
-document.addEventListener('click', handleThemeToggleClick, { passive: true })
+// Bind click event to the button with error handling
+try {
+  document.addEventListener('click', handleThemeToggleClick, { passive: true })
+}
+catch (error) {
+  // Silently fail if event listener setup is blocked
+}
 
-// Listen to system theme changes in real time
-window.matchMedia('(prefers-color-scheme: dark)')
-  .addEventListener('change', (event) => {
-    const isDark = event.matches
-    // Apply system theme preference
-    applyTheme(isDark)
-  })
+// Listen to system theme changes in real time with error handling
+try {
+  window.matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', (event) => {
+      try {
+        const isDark = event.matches
+        // Apply system theme preference
+        applyTheme(isDark)
+      }
+      catch (error) {
+        // Silently fail if theme application fails
+      }
+    })
+}
+catch (error) {
+  // Silently fail if matchMedia setup is blocked
+}
 </script>

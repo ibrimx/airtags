@@ -167,6 +167,17 @@ function handleGlobalKeydown(event: KeyboardEvent) {
   soundManager.playSound(soundTypes.typing)
 }
 
-document.addEventListener('click', handleGlobalClick, { passive: true })
-document.addEventListener('keydown', handleGlobalKeydown, { passive: true })
+try {
+  document.addEventListener('click', handleGlobalClick, { passive: true })
+}
+catch (error) {
+  // Silently fail if click listener setup is blocked
+}
+
+try {
+  document.addEventListener('keydown', handleGlobalKeydown, { passive: true })
+}
+catch (error) {
+  // Silently fail if keydown listener setup is blocked
+}
 </script>

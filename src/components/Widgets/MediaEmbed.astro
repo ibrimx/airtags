@@ -109,8 +109,31 @@ function handleGalleryWheel(e: WheelEvent) {
   e.preventDefault()
 }
 
-document.addEventListener('astro:page-load', setupMediaEmbeds)
-document.addEventListener('theme-changed', updateMermaidTheme)
-document.addEventListener('wheel', handleGalleryWheel, { passive: false })
-setupMediaEmbeds()
+try {
+  document.addEventListener('astro:page-load', setupMediaEmbeds)
+}
+catch (error) {
+  // Silently fail if listener setup is blocked
+}
+
+try {
+  document.addEventListener('theme-changed', updateMermaidTheme)
+}
+catch (error) {
+  // Silently fail if listener setup is blocked
+}
+
+try {
+  document.addEventListener('wheel', handleGalleryWheel, { passive: false })
+}
+catch (error) {
+  // Silently fail if listener setup is blocked
+}
+
+try {
+  setupMediaEmbeds()
+}
+catch (error) {
+  // Silently fail if setup is blocked
+}
 </script>
