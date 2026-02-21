@@ -1,12 +1,16 @@
 ---
-import PostList from '@/components/PostList.astro'
-import { defaultLocale, moreLocales } from '@/config'
-import Layout from '@/layouts/Layout.astro'
-import { getPinnedPosts, getPostsByYear } from '@/utils/content'
+import PostList from "@/components/PostList.astro"
+import Layout from "@/layouts/Layout.astro"
 import SearchOverlay from "@/components/search/SearchOverlay"
+
+import { defaultLocale, moreLocales } from "@/config"
+import { getPinnedPosts, getPostsByYear } from "@/utils/content"
 import { getPosts } from "@/lib/notion/posts"
 
-const posts = await getPosts()
+/* ---------------------------
+   Static Paths
+---------------------------- */
+
 export async function getStaticPaths() {
   type PathItem = {
     params: { index: string | undefined }
@@ -15,13 +19,11 @@ export async function getStaticPaths() {
 
   const paths: PathItem[] = []
 
-  // Default locale
   paths.push({
     params: { index: undefined },
     props: { lang: defaultLocale },
   })
 
-  // More locales
   moreLocales.forEach((lang: string) => {
     paths.push({
       params: { index: `${lang}/` },
@@ -32,13 +34,24 @@ export async function getStaticPaths() {
   return paths
 }
 
+/* ---------------------------
+   Page Data
+---------------------------- */
+
 const { lang } = Astro.props
 
 const pinnedPosts = await getPinnedPosts(lang)
 const postsByYear = await getPostsByYear(lang)
+
+/* Notion posts for search */
+const searchPosts = await getPosts()
 ---
 
 <Layout>
+
+  <!-- Search -->
+  <SearchOverlay posts={searchPosts} client:load />
+
   <!-- Pinned Posts -->
   {pinnedPosts.length > 0 && (
     <section class="mb-7.5">
@@ -47,7 +60,6 @@ const postsByYear = await getPostsByYear(lang)
     </section>
   )}
 
-  <SearchOverlay posts={posts} client:load />
   <!-- Regular Posts -->
   {[...postsByYear.entries()].map(([_year, posts]) => (
     <section class="mb-7.5">
@@ -55,4 +67,5 @@ const postsByYear = await getPostsByYear(lang)
       <PostList posts={posts} lang={lang} />
     </section>
   ))}
+
 </Layout>
