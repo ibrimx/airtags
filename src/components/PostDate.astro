@@ -58,7 +58,10 @@ function formatDate(date: Date, format: 'YYYY-MM-DD' | 'MM-DD-YYYY' | 'DD-MM-YYY
 ---
 
 <!-- published date -->
-<time datetime={date.toISOString().split('T')[0]}>
+<time
+  datetime={date.toISOString().split('T')[0]}
+  class="date-display"
+>
   {formatDate(date, format)}
 </time>
 
@@ -66,7 +69,7 @@ function formatDate(date: Date, format: 'YYYY-MM-DD' | 'MM-DD-YYYY' | 'DD-MM-YYY
 {updatedDate && (
   <time
     datetime={updatedDate.toISOString().split('T')[0]}
-    class={timeSpacingClass}
+    class={`${timeSpacingClass} date-display`}
   >
     updated {formatDate(updatedDate, format)}
   </time>
@@ -78,9 +81,18 @@ function formatDate(date: Date, format: 'YYYY-MM-DD' | 'MM-DD-YYYY' | 'DD-MM-YYY
 </span>
 
 <style define:vars={{ readingTimeClass }}>
+  .date-display {
+    font-family: Inter, sans-serif;
+    font-weight: 200;
+    border-style: ridge;
+    border-width: 1px;
+    font-size: 13.25px;
+  }
+
   .reading-time-display {
     opacity: 0.43;
     border: 1px ridge;
     font-family: Arial, sans-serif;
+    font-size: 13.25px;
   }
 </style>
