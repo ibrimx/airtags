@@ -55,43 +55,59 @@ function getThemeUrl() {
 }
 
 function setupGiscus() {
-  const giscusContainer = document.getElementById('giscus')
-  if (!giscusContainer) {
-    return
+  try {
+    const giscusContainer = document.getElementById('giscus')
+    if (!giscusContainer) {
+      return
+    }
+
+    try {
+      giscusContainer.innerHTML = ''
+    }
+    catch (error) {
+      // Silently fail if innerHTML modification is blocked
+      return
+    }
+
+    const currentPath = window.location.pathname
+    const pathWithoutBase = base && currentPath.startsWith(base)
+      ? currentPath.slice(base.length)
+      : currentPath
+
+    const lang = Object.keys(giscusLocaleMap).find(code =>
+      pathWithoutBase.startsWith(`/${code}/`),
+    ) ?? defaultLocale
+
+    const dataAttributes = {
+      repo,
+      repoId,
+      ...(category && { category }),
+      categoryId,
+      mapping,
+      strict,
+      reactionsEnabled,
+      emitMetadata,
+      inputPosition,
+      theme: getThemeUrl(),
+      lang: giscusLocaleMap[lang],
+    }
+
+    const script = document.createElement('script')
+    script.crossOrigin = 'anonymous'
+    script.async = true
+    Object.assign(script.dataset, dataAttributes)
+    script.src = 'https://giscus.app/client.js'
+
+    try {
+      giscusContainer.appendChild(script)
+    }
+    catch (error) {
+      // Silently fail if appendChild is blocked
+    }
   }
-
-  giscusContainer.innerHTML = ''
-
-  const currentPath = window.location.pathname
-  const pathWithoutBase = base && currentPath.startsWith(base)
-    ? currentPath.slice(base.length)
-    : currentPath
-
-  const lang = Object.keys(giscusLocaleMap).find(code =>
-    pathWithoutBase.startsWith(`/${code}/`),
-  ) ?? defaultLocale
-
-  const dataAttributes = {
-    repo,
-    repoId,
-    ...(category && { category }),
-    categoryId,
-    mapping,
-    strict,
-    reactionsEnabled,
-    emitMetadata,
-    inputPosition,
-    theme: getThemeUrl(),
-    lang: giscusLocaleMap[lang],
+  catch (error) {
+    // Silently fail if any operation fails
   }
-
-  const script = document.createElement('script')
-  script.crossOrigin = 'anonymous'
-  script.async = true
-  Object.assign(script.dataset, dataAttributes)
-  script.src = 'https://giscus.app/client.js'
-
-  giscusContainer.appendChild(script)
 }
 
 // Theme updates are disabled due to cross-origin restrictions
@@ -109,13 +125,29 @@ function safeSetupGiscus() {
 }
 
 // Ensure the giscus container doesn't participate in view transitions
-const giscusContainer = document.getElementById('giscus')
-if (giscusContainer) {
-  giscusContainer.style.viewTransitionName = 'none'
+try {
+  const giscusContainer = document.getElementById('giscus')
+  if (giscusContainer) {
+    giscusContainer.style.viewTransitionName = 'none'
+  }
+}
+catch (error) {
+  // Silently fail if style setting is blocked
 }
 
-document.addEventListener('astro:page-load', safeSetupGiscus)
-safeSetupGiscus()
+try {
+  document.addEventListener('astro:page-load', safeSetupGiscus)
+}
+catch (error) {
+  // Silently fail if event listener setup is blocked
+}
+
+try {
+  safeSetupGiscus()
+}
+catch (error) {
+  // Silently fail if initial setup is blocked
+}
 </script>
 
 <style>
