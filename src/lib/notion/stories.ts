@@ -1,5 +1,5 @@
 import { notion } from "./client"
-import { mapText, mapNumber } from "./mapper"
+import { mapText, mapNumber, mapCheckbox } from "./mapper"
 import type { StorySlide } from "./types"
 
 export async function getStorySlides(): Promise<StorySlide[]> {
@@ -30,13 +30,23 @@ export async function getStorySlides(): Promise<StorySlide[]> {
       slug: mapText(slide.properties.Slug),
       cover: slide.properties.Cover?.files?.[0]?.file?.url,
       order: mapNumber(slide.properties.Order),
-      stories: storiesRes.results.map((story: any) => ({
-        id: story.id,
-        type: story.properties.Type.select.name,
-        media: story.properties.Media?.files?.[0]?.file?.url,
-        caption: mapText(story.properties.Caption),
-        duration: mapNumber(story.properties.Duration),
-      })),
+      stories: storiesRes.results
+        .filter((story: any) =>
+          mapCheckbox(story.properties.Active)
+        )
+        .map((story: any) => ({
+          id: story.id,
+          type: story.properties.Type.select.name,
+          media: story.properties.Media?.files?.[0]?.file?.url,
+          caption: mapText(story.properties.Caption),
+          duration: mapNumber(story.properties.Duration),
+          background:
+            story.properties.Background?.select?.name || "default",
+          cta: {
+            text: mapText(story.properties["CTA Text"]),
+            link: story.properties["CTA Link"]?.url,
+          },
+        })),
     })
   }
 
