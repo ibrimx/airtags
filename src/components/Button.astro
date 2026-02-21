@@ -105,14 +105,22 @@ function handleThemeToggleClick(e) {
   document.documentElement.style.setProperty('view-transition-name', 'animation-theme-toggle')
   document.documentElement.setAttribute('data-theme-changing', '')
 
-  // Use View Transitions API for theme toggle
-  const transition = document.startViewTransition(toggleTheme)
+  try {
+    // Use View Transitions API for theme toggle
+    const transition = document.startViewTransition(toggleTheme)
 
-  // Remove temporary markers after view transition
-  transition.finished.then(() => {
+    // Remove temporary markers after view transition
+    transition.finished.then(() => {
+      document.documentElement.style.removeProperty('view-transition-name')
+      document.documentElement.removeAttribute('data-theme-changing')
+    })
+  }
+  catch (error) {
+    // Fallback to direct theme change if view transition fails
+    // This can happen due to cross-origin iframe access restrictions
     document.documentElement.style.removeProperty('view-transition-name')
     document.documentElement.removeAttribute('data-theme-changing')
-  })
+  }
 }
 
 // Bind click event to the button

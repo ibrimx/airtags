@@ -15,7 +15,7 @@ const {
 } = themeConfig.comment?.giscus ?? {}
 ---
 
-<div id="giscus" class="giscus mt-16" />
+<div id="giscus" class="giscus mt-16 view-transition-skip" />
 
 <!-- Giscus Script >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> -->
 <script
@@ -98,6 +98,28 @@ function setupGiscus() {
 // Giscus iframe will use the theme specified at initialization time
 // Dynamic theme switching is not supported for cross-origin security reasons
 
-document.addEventListener('astro:page-load', setupGiscus)
-setupGiscus()
+// Wrap setupGiscus to handle any potential errors
+function safeSetupGiscus() {
+  try {
+    setupGiscus()
+  }
+  catch (error) {
+    // Silently fail if setup encounters any errors
+  }
+}
+
+// Ensure the giscus container doesn't participate in view transitions
+const giscusContainer = document.getElementById('giscus')
+if (giscusContainer) {
+  giscusContainer.style.viewTransitionName = 'none'
+}
+
+document.addEventListener('astro:page-load', safeSetupGiscus)
+safeSetupGiscus()
 </script>
+
+<style>
+  #giscus {
+    view-transition-name: none;
+  }
+</style>
