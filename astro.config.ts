@@ -1,5 +1,6 @@
 import mdx from '@astrojs/mdx'
 import partytown from '@astrojs/partytown'
+import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
 import Compress from 'astro-compress'
 import { defineConfig } from 'astro/config'
@@ -17,6 +18,7 @@ import { rehypeHeadingAnchor } from './src/plugins/rehype-heading-anchor.mjs'
 import { rehypeImageProcessor } from './src/plugins/rehype-image-processor.mjs'
 import { remarkContainerDirectives } from './src/plugins/remark-container-directives.mjs'
 import { remarkLeafDirectives } from './src/plugins/remark-leaf-directives.mjs'
+
 import { remarkReadingTime } from './src/plugins/remark-reading-time.mjs'
 
 const { url: site } = themeConfig.site
@@ -41,25 +43,19 @@ export default defineConfig({
     })),
     defaultLocale,
   },
-  integrations: [
-    UnoCSS({
-      injectReset: true,
-    }),
-    mdx(),
-    partytown({
-      config: {
-        forward: ['dataLayer.push', 'gtag'],
-      },
-    }),
-    sitemap(),
-    Compress({
-      CSS: true,
-      HTML: true,
-      Image: false,
-      JavaScript: true,
-      SVG: false,
-    }),
-  ],
+  integrations: [UnoCSS({
+    injectReset: true,
+  }), mdx(), partytown({
+    config: {
+      forward: ['dataLayer.push', 'gtag'],
+    },
+  }), sitemap(), Compress({
+    CSS: true,
+    HTML: true,
+    Image: false,
+    JavaScript: true,
+    SVG: false,
+  }), react()],
   markdown: {
     remarkPlugins: [
       remarkDirective,
