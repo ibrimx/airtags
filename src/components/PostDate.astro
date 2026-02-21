@@ -12,6 +12,7 @@ const { date, updatedDate, minutes } = Astro.props
 const { dateFormat: format } = themeConfig.global
 const isPost = isPostPage(Astro.url.pathname)
 const timeSpacingClass = isPost ? 'ml-1.75' : 'ml-1.5'
+const readingTimeClass = 'reading-time-display'
 
 function formatDate(date: Date, format: 'YYYY-MM-DD' | 'MM-DD-YYYY' | 'DD-MM-YYYY' | 'MONTH DAY YYYY' | 'DAY MONTH YYYY') {
   if (format === 'YYYY-MM-DD') {
@@ -72,6 +73,14 @@ function formatDate(date: Date, format: 'YYYY-MM-DD' | 'MM-DD-YYYY' | 'DD-MM-YYY
 )}
 
 <!-- reading time -->
-<span class={timeSpacingClass}>
+<span class={`${timeSpacingClass} ${readingTimeClass}`}>
   {minutes} min
 </span>
+
+<style define:vars={{ readingTimeClass }}>
+  .reading-time-display {
+    opacity: 0.43;
+    border: 1px ridge;
+    font-family: Arial, sans-serif;
+  }
+</style>
