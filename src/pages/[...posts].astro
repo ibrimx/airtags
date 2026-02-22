@@ -45,11 +45,48 @@ const { lang } = Astro.props
 const pinnedPosts = await getPinnedPosts(lang)
 const postsByYear = await getPostsByYear(lang)
 
-let searchPosts: Post[] = []
-
+/* Notion posts */
+let notionPosts: Post[] = []
 if (import.meta.env.NOTION_TOKEN) {
-  searchPosts = await getPosts()
+  notionPosts = await getPosts()
 }
+
+// Merge Notion posts into the years map
+notionPosts.forEach((post) => {
+  const date = post.publishDate ? new Date(post.publishDate) : new Date()
+  const year = date.getFullYear()
+  
+  // Convert Notion post to the format expected by PostList
+  const formattedPost: any = {
+    id: post.id,
+    data: {
+      title: post.title,
+      published: date,
+      abbrlink: post.slug,
+      pin: post.pinned ? 1 : 0,
+      description: post.excerpt,
+      tags: post.tags,
+      lang: lang || defaultLocale,
+    },
+    remarkPluginFrontmatter: {
+      minutes: 5 // Default value
+    }
+  }
+
+  if (post.pinned) {
+    pinnedPosts.push(formattedPost)
+  } else {
+    if (!postsByYear.has(year)) {
+      postsByYear.set(year, [])
+    }
+    postsByYear.get(year)!.push(formattedPost)
+  }
+})
+
+// Re-sort years and posts within years
+const sortedYears = new Map([...postsByYear.entries()].sort((a, b) => b[0] - a[0]))
+sortedYears.forEach(posts => posts.sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf()))
+pinnedPosts.sort((a, b) => (b.data.pin ?? 0) - (a.data.pin ?? 0))
 ---
 
 <Layout>
@@ -60,7 +97,7 @@ if (import.meta.env.NOTION_TOKEN) {
     </section>
   )}
 
-  {[...postsByYear.entries()].map(([_year, posts]) => (
+  {[...sortedYears.entries()].map(([_year, posts]) => (
     <section class="mb-7.5">
       <div class="uno-decorative-line" />
       <PostList posts={posts} lang={lang} />
