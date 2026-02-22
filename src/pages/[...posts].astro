@@ -2,15 +2,45 @@
 import PostList from "@/components/PostList.astro"
 import Layout from "@/layouts/Layout.astro"
 
+import { defaultLocale, moreLocales } from "@/config"
 import { getPinnedPosts, getPostsByYear } from "@/utils/content"
 import { getPosts } from "@/lib/notion/posts"
 import type { Post } from "@/lib/notion/types"
 
 /* ---------------------------
+   Static Paths
+---------------------------- */
+
+export async function getStaticPaths() {
+  type PathItem = {
+    params: { posts: string | undefined }
+    props: { lang: string }
+  }
+
+  const paths: PathItem[] = []
+
+  // Default locale
+  paths.push({
+    params: { posts: undefined },
+    props: { lang: defaultLocale },
+  })
+
+  // Other locales
+  moreLocales.forEach((lang: string) => {
+    paths.push({
+      params: { posts: `${lang}/posts` },
+      props: { lang },
+    })
+  })
+
+  return paths
+}
+
+/* ---------------------------
    Page Data
 ---------------------------- */
 
-const lang = Astro.currentLocale ?? "en"
+const { lang } = Astro.props
 
 const pinnedPosts = await getPinnedPosts(lang)
 const postsByYear = await getPostsByYear(lang)
@@ -26,7 +56,6 @@ if (import.meta.env.NOTION_TOKEN) {
 
 <Layout>
 
-  <!-- Pinned Posts -->
   {pinnedPosts.length > 0 && (
     <section class="mb-7.5">
       <div class="uno-decorative-line" />
@@ -34,7 +63,6 @@ if (import.meta.env.NOTION_TOKEN) {
     </section>
   )}
 
-  <!-- Regular Posts -->
   {[...postsByYear.entries()].map(([_year, posts]) => (
     <section class="mb-7.5">
       <div class="uno-decorative-line" />
