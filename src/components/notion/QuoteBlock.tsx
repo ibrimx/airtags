@@ -1,5 +1,5 @@
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints"
-import RichText from "./RichText"
+import { RichText } from "./RichText"
 
 interface Props {
   block: BlockObjectResponse
