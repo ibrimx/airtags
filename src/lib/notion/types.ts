@@ -35,3 +35,44 @@ export interface StorySlide {
   order: number
   stories: StoryItem[]
 }
+
+export interface BentoBlock {
+  id: string
+
+  // Content
+  title: string
+  description?: string
+  image?: string | null
+
+  // Layout Engine
+  layout:
+    | "stack"
+    | "split"
+    | "overlay"
+    | "center"
+    | "mediaTop"
+    | "banner"
+
+  span: number // 1–12
+  order: number
+
+  // Link
+  linkText?: string
+  linkHref?: string
+
+  // Style System
+  styleVariant?:
+    | "surface"
+    | "surface-muted"
+    | "surface-inverted"
+    | "accent-blue"
+    | "accent-green"
+    | "accent-red"
+    | "accent-yellow"
+    | "gradient-soft"
+    | "gradient-strong"
+    | "glass"
+    | "outline"
+
+  published: boolean
+}
