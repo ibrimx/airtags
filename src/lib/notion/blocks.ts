@@ -10,13 +10,7 @@ export async function getPostBlocks(blockId: string) {
       start_cursor: cursor,
     })
 
-    for (const block of res.results) {
-      if (block.has_children) {
-        block.children = await getPostBlocks(block.id)
-      }
-      blocks.push(block)
-    }
-
+    blocks.push(...res.results)
     cursor = res.has_more ? res.next_cursor ?? undefined : undefined
   } while (cursor)
 
