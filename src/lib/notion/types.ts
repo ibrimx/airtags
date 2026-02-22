@@ -14,28 +14,33 @@ export interface SiteConfig {
   logo?: string
 }
 
+// S T O R I S E
 export interface StoryItem {
   id: string
-  type: "image" | "video" | "text"
-  media?: string
+  title: string
+  media?: string | null
   caption?: string
-  duration: number
-  background: string
-  cta?: {
-    text: string
-    link?: string
-  }
+  ctaText?: string
+  ctaLink?: string
+  type?: "image" | "video" | "text"
+  duration?: number
+  background?: string
+  order: number
+  slideId: string | null
 }
 
 export interface StorySlide {
   id: string
   title: string
   slug: string
-  cover?: string
+  cover?: string | null
   order: number
-  stories: StoryItem[]
+  theme?: string
+  items: StoryItem[]
 }
 
+
+// B E N T O *
 export interface BentoBlock {
   id: string
 
