@@ -1,3 +1,4 @@
+```astro
 ---
 import { getCollection, render } from "astro:content"
 
@@ -8,10 +9,6 @@ import { getPosts } from "@/lib/notion/posts"
 import { getBlocksRecursive } from "@/lib/notion/blocks"
 import BlockRenderer from '../components/notion/BlockRenderer.astro'
 import { getSiteConfig } from "@/lib/notion/site-config"
-
-/* ============================
-   STATIC PATHS
-============================ */
 
 export async function getStaticPaths() {
   const paths: any[] = []
@@ -42,10 +39,6 @@ export async function getStaticPaths() {
   return paths
 }
 
-/* ============================
-   RUNTIME
-============================ */
-
 const { source } = Astro.props
 const siteConfig = await getSiteConfig()
 
@@ -59,8 +52,6 @@ const previewSecret = import.meta.env.PREVIEW_SECRET
 const preview =
   Astro.url.searchParams.get("preview") === previewSecret
 
-const siteUrl = Astro.url.origin
-
 let title = ""
 let description = ""
 let cover = ""
@@ -71,8 +62,6 @@ let tags: string[] = []
 let Content: any = null
 let headings: any[] = []
 let blocks: any[] = []
-
-/* ========= MARKDOWN ========= */
 
 if (source === "markdown") {
   const posts = await getCollection("posts")
@@ -99,8 +88,6 @@ if (source === "markdown") {
   tags = data.tags ?? []
 }
 
-/* ========= NOTION ========= */
-
 if (source === "notion") {
   const notionPosts = await getPosts(preview)
 
@@ -119,10 +106,6 @@ if (source === "notion") {
   contentType = post.contentType ?? "essay"
   tags = post.tags ?? []
 }
-
-/* ============================
-   SEO
-============================ */
 
 const layoutClass = `post-${contentType}`
 const seoTitle = `${title} | ${siteConfig.siteName}`
@@ -169,10 +152,7 @@ function normalizeDate(d: any) {
       {source === "markdown" && <Content />}
 
       {source === "notion" && (
-        <BlockRenderer
-          blocks={blocks}
-          client:only="react"
-        />
+        <BlockRenderer blocks={blocks} />
       )}
     </section>
 
@@ -197,3 +177,4 @@ function normalizeDate(d: any) {
   margin-bottom: 1rem;
 }
 </style>
+```
