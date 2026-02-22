@@ -1,7 +1,5 @@
 
 ---
-import BlockRenderer from './BlockRenderer.astro'
-
 interface NotionRichText {
   plain_text: string
 }
@@ -46,7 +44,7 @@ function text(rich?: NotionRichText[]) {
         <li>
           {text(block.bulleted_list_item?.rich_text)}
           {block.children && (
-            <BlockRenderer blocks={block.children} />
+            <Astro.self blocks={block.children} />
           )}
         </li>
       </ul>
@@ -59,7 +57,7 @@ function text(rich?: NotionRichText[]) {
         <li>
           {text(block.numbered_list_item?.rich_text)}
           {block.children && (
-            <BlockRenderer blocks={block.children} />
+            <Astro.self blocks={block.children} />
           )}
         </li>
       </ol>
@@ -83,7 +81,7 @@ function text(rich?: NotionRichText[]) {
       <details>
         <summary>{text(block.toggle?.rich_text)}</summary>
         {block.children && (
-          <BlockRenderer blocks={block.children} />
+          <Astro.self blocks={block.children} />
         )}
       </details>
     )
@@ -153,7 +151,7 @@ function text(rich?: NotionRichText[]) {
       <div class="columns">
         {block.children?.map((col: NotionBlock) => (
           <div class="column">
-            <BlockRenderer blocks={col.children ?? []} />
+            <Astro.self blocks={col.children ?? []} />
           </div>
         ))}
       </div>
@@ -162,3 +160,4 @@ function text(rich?: NotionRichText[]) {
 
   return null
 })}
+```
