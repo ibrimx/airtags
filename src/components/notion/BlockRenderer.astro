@@ -10,7 +10,8 @@ interface NotionBlock {
   [key: string]: any
 }
 
-const { blocks = [] }: { blocks: NotionBlock[] } = Astro.props
+const props = Astro.props as { blocks?: NotionBlock[] }
+const blocks: NotionBlock[] = props.blocks ?? []
 
 function text(rich?: NotionRichText[]) {
   if (!rich) return ""
@@ -20,12 +21,10 @@ function text(rich?: NotionRichText[]) {
 
 {blocks.map((block: NotionBlock) => {
 
-  /* PARAGRAPH */
   if (block.type === "paragraph") {
     return <p>{text(block.paragraph?.rich_text)}</p>
   }
 
-  /* HEADINGS */
   if (block.type === "heading_1") {
     return <h1>{text(block.heading_1?.rich_text)}</h1>
   }
@@ -38,48 +37,36 @@ function text(rich?: NotionRichText[]) {
     return <h3>{text(block.heading_3?.rich_text)}</h3>
   }
 
-  /* BULLETED LIST */
   if (block.type === "bulleted_list_item") {
     return (
       <ul>
         <li>
           {text(block.bulleted_list_item?.rich_text)}
-          {block.children && block.children.length > 0 && (
-            <Fragment>
-              {block.children.map((child: NotionBlock) => (
-                <BlockRenderer blocks={[child]} />
-              ))}
-            </Fragment>
+          {block.children && (
+            <BlockRenderer blocks={block.children} />
           )}
         </li>
       </ul>
     )
   }
 
-  /* NUMBERED LIST */
   if (block.type === "numbered_list_item") {
     return (
       <ol>
         <li>
           {text(block.numbered_list_item?.rich_text)}
-          {block.children && block.children.length > 0 && (
-            <Fragment>
-              {block.children.map((child: NotionBlock) => (
-                <BlockRenderer blocks={[child]} />
-              ))}
-            </Fragment>
+          {block.children && (
+            <BlockRenderer blocks={block.children} />
           )}
         </li>
       </ol>
     )
   }
 
-  /* QUOTE */
   if (block.type === "quote") {
     return <blockquote>{text(block.quote?.rich_text)}</blockquote>
   }
 
-  /* CALLOUT */
   if (block.type === "callout") {
     return (
       <div class="notion-callout">
@@ -88,7 +75,6 @@ function text(rich?: NotionRichText[]) {
     )
   }
 
-  /* TOGGLE */
   if (block.type === "toggle") {
     return (
       <details>
@@ -100,7 +86,6 @@ function text(rich?: NotionRichText[]) {
     )
   }
 
-  /* CODE */
   if (block.type === "code") {
     return (
       <pre>
@@ -109,7 +94,6 @@ function text(rich?: NotionRichText[]) {
     )
   }
 
-  /* IMAGE */
   if (block.type === "image") {
     const src =
       block.image?.file?.url ||
@@ -127,7 +111,6 @@ function text(rich?: NotionRichText[]) {
     )
   }
 
-  /* VIDEO */
   if (block.type === "video") {
     const src =
       block.video?.file?.url ||
@@ -142,12 +125,10 @@ function text(rich?: NotionRichText[]) {
     )
   }
 
-  /* DIVIDER */
   if (block.type === "divider") {
     return <hr />
   }
 
-  /* TABLE */
   if (block.type === "table") {
     return (
       <table>
@@ -164,13 +145,12 @@ function text(rich?: NotionRichText[]) {
     )
   }
 
-  /* COLUMNS */
   if (block.type === "column_list") {
     return (
       <div class="columns">
         {block.children?.map((col: NotionBlock) => (
           <div class="column">
-            <BlockRenderer blocks={col.children || []} />
+            <BlockRenderer blocks={col.children ?? []} />
           </div>
         ))}
       </div>
