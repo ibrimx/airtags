@@ -18,7 +18,7 @@ export async function getStaticPaths() {
   markdownPosts.forEach((post) => {
     if (!post.data.draft) {
       const slug = post.data.abbrlink || post.id.split('/').pop()
-      usedSlugs.add(slug.toLowerCase())
+      if (slug) usedSlugs.add(slug.toLowerCase())
       paths.push({
         params: { posts_slug: `posts/${slug}/` },
         props: { source: "markdown" },
