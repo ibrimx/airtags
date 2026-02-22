@@ -23,7 +23,7 @@ export async function getStaticPaths() {
       const slug = post.data.abbrlink || post.id
       paths.push({
         params: { posts_slug: `posts/${slug}/` },
-        props: { source: "markdown", slug },
+        props: { source: "markdown" },
       })
     }
   })
@@ -34,7 +34,7 @@ export async function getStaticPaths() {
     notionPosts.forEach((post) => {
       paths.push({
         params: { posts_slug: `posts/${post.slug}/` },
-        props: { source: "notion", slug: post.slug },
+        props: { source: "notion" },
       })
     })
   } catch {}
@@ -46,8 +46,15 @@ export async function getStaticPaths() {
    RUNTIME
 ============================ */
 
-const { source, slug } = Astro.props
+const { source } = Astro.props
 const siteConfig = await getSiteConfig()
+
+/* استخراج slug من المسار الحقيقي */
+const slug = Astro.params.posts_slug
+  ?.split("/")
+  .filter(Boolean)
+  .pop()
+  ?.toLowerCase()
 
 const previewSecret = import.meta.env.PREVIEW_SECRET
 const preview =
@@ -72,7 +79,7 @@ if (source === "markdown") {
   const posts = await getCollection("posts")
 
   const post = posts.find((p) => {
-    const s = p.data.abbrlink || p.id
+    const s = (p.data.abbrlink || p.id).toLowerCase()
     return s === slug
   })
 
@@ -98,7 +105,10 @@ if (source === "markdown") {
 if (source === "notion") {
   const notionPosts = await getPosts(preview)
 
-  const post = notionPosts.find((p) => p.slug === slug)
+  const post = notionPosts.find(
+    (p) => p.slug?.toLowerCase() === slug
+  )
+
   if (!post) throw new Error("Post not found")
 
   blocks = await getBlocksRecursive(post.id)
@@ -112,7 +122,7 @@ if (source === "notion") {
 }
 
 /* ============================
-   SEO + STRUCTURED DATA
+   SEO
 ============================ */
 
 const layoutClass = `post-${contentType}`
@@ -120,75 +130,9 @@ const seoTitle = `${title} | ${siteConfig.siteName}`
 const url = `${siteUrl}/posts/${slug}/`
 const ogImage = cover || siteConfig.ogImage
 
-function generateSchema() {
-  const base = {
-    "@context": "https://schema.org",
-    "@id": url,
-    headline: title,
-    description,
-    image: ogImage,
-    datePublished:
-      publishDate instanceof Date
-        ? publishDate.toISOString()
-        : publishDate,
-    dateModified:
-      publishDate instanceof Date
-        ? publishDate.toISOString()
-        : publishDate,
-    author: {
-      "@type": "Person",
-      name: siteConfig.siteName,
-      url: siteUrl,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: siteConfig.siteName,
-      logo: {
-        "@type": "ImageObject",
-        url: siteConfig.ogImage,
-      },
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": url,
-    },
-  }
-
-  if (contentType === "project")
-    return { ...base, "@type": "CreativeWork" }
-
-  if (contentType === "experiment")
-    return { ...base, "@type": "TechArticle" }
-
-  if (contentType === "journal")
-    return { ...base, "@type": "BlogPosting" }
-
-  return { ...base, "@type": "Article" }
-}
-
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: siteUrl,
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Posts",
-      item: `${siteUrl}/posts/`,
-    },
-    {
-      "@type": "ListItem",
-      position: 3,
-      name: title,
-      item: url,
-    },
-  ],
+function normalizeDate(d: any) {
+  if (!d) return undefined
+  return d instanceof Date ? d.toISOString() : d
 }
 ---
 
@@ -196,18 +140,10 @@ const breadcrumbSchema = {
   postTitle={seoTitle}
   postDescription={description}
   postImage={ogImage}
-  postSlug={slug}
+  postSlug={`/posts/${slug}/`}
 >
 
-  <script type="application/ld+json" is:inline>
-    {JSON.stringify(generateSchema())}
-  </script>
-
-  <script type="application/ld+json" is:inline>
-    {JSON.stringify(breadcrumbSchema)}
-  </script>
-
-  <article class={`post-page ${layoutClass}`}>
+  <article class={`heti post-page ${layoutClass}`}>
 
     {cover && (
       <section class="post-hero">
@@ -215,15 +151,15 @@ const breadcrumbSchema = {
       </section>
     )}
 
-    <h1>{title}</h1>
+    <h1 class="post-title">{title}</h1>
 
     {publishDate && (
-      <time datetime={
-        publishDate instanceof Date
-          ? publishDate.toISOString()
-          : publishDate
-      }>
-        {new Date(publishDate).toLocaleDateString()}
+      <time datetime={normalizeDate(publishDate)}>
+        {new Date(publishDate).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
       </time>
     )}
 
@@ -249,3 +185,13 @@ const breadcrumbSchema = {
   </article>
 
 </Layout>
+
+<style>
+.post-page {
+  padding: 4rem 1.2rem;
+}
+
+.post-title {
+  margin-bottom: 1rem;
+}
+</style>
