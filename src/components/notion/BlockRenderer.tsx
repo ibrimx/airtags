@@ -1,4 +1,3 @@
-import React from "react"
 import { RichText } from "./RichText"
 import { highlight } from "@/lib/notion/highlight"
 import { renderEquation } from "@/lib/notion/equation"
