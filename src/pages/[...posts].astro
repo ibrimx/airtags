@@ -1,0 +1,74 @@
+---
+import PostList from "@/components/PostList.astro"
+import Layout from "@/layouts/Layout.astro"
+
+import { defaultLocale, moreLocales } from "@/config"
+import { getPinnedPosts, getPostsByYear } from "@/utils/content"
+import { getPosts } from "@/lib/notion/posts"
+import type { Post } from "@/lib/notion/types"
+
+/* ---------------------------
+   Static Paths
+---------------------------- */
+
+export async function getStaticPaths() {
+  type PathItem = {
+    params: { index: string | undefined }
+    props: { lang: string }
+  }
+
+  const paths: PathItem[] = []
+
+  paths.push({
+    params: { index: undefined },
+    props: { lang: defaultLocale },
+  })
+
+  moreLocales.forEach((lang: string) => {
+    paths.push({
+      params: { index: `${lang}/` },
+      props: { lang },
+    })
+  })
+
+  return paths
+}
+
+/* ---------------------------
+   Page Data
+---------------------------- */
+
+const { lang } = Astro.props
+
+const pinnedPosts = await getPinnedPosts(lang)
+const postsByYear = await getPostsByYear(lang)
+
+/* Notion posts for search */
+
+let searchPosts: Post[] = []
+
+if (import.meta.env.NOTION_TOKEN) {
+  searchPosts = await getPosts()
+}
+---
+
+<Layout>
+
+
+  <!-- Pinned Posts -->
+  {pinnedPosts.length > 0 && (
+    <section class="mb-7.5">
+      <div class="uno-decorative-line" />
+      <PostList posts={pinnedPosts} lang={lang} pinned={true} />
+    </section>
+  )}
+
+  <!-- Regular Posts -->
+  {[...postsByYear.entries()].map(([_year, posts]) => (
+    <section class="mb-7.5">
+      <div class="uno-decorative-line" />
+      <PostList posts={posts} lang={lang} />
+    </section>
+  ))}
+
+</Layout>
