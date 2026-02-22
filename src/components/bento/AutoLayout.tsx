@@ -9,45 +9,36 @@ export default function AutoLayout({
   children,
   featuredIndex,
 }: AutoLayoutProps) {
-  // نحول children لمصفوفة حتى نستطيع حساب عددهم
   const items = React.Children.toArray(children)
   const count = items.length
 
-  // =========================
-  // حالة 1: عنصر واحد
-  // =========================
+  // عنصر واحد
   if (count === 1) {
-    return (
-      <div className="w-full">
-        {items[0]}
-      </div>
-    )
+    return <div className="w-full">{items}</div>
   }
 
-  // =========================
-  // حالة 2: عنصرين
-  // =========================
+  // عنصرين
   if (count === 2) {
     return (
-      <div className="flex w-full gap-4">
+      <div className="flex flex-col md:flex-row gap-6 w-full">
         {items.map((child, index) => {
-          // لو محدد عنصر مميز
           if (featuredIndex !== undefined) {
-            const isFeatured = index === featuredIndex
-
             return (
               <div
                 key={index}
-                className={isFeatured ? "flex-[3]" : "flex-[1]"}
+                className={
+                  index === featuredIndex
+                    ? "md:flex-[3]"
+                    : "md:flex-[1]"
+                }
               >
                 {child}
               </div>
             )
           }
 
-          // توزيع عادي 50 / 50
           return (
-            <div key={index} className="flex-1">
+            <div key={index} className="md:flex-1">
               {child}
             </div>
           )
@@ -56,15 +47,11 @@ export default function AutoLayout({
     )
   }
 
-  // =========================
-  // حالة 3: أكثر من عنصرين
-  // =========================
+  // أكثر من عنصرين
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map((child, index) => (
-        <div key={index}>
-          {child}
-        </div>
+        <div key={index}>{child}</div>
       ))}
     </div>
   )
