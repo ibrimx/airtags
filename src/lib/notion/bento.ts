@@ -1,4 +1,5 @@
 import { notion } from "./client"
+import type { BentoBlock } from "./types"
 
 export interface BentoBlock {
   id: string
