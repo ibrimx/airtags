@@ -53,7 +53,10 @@ export interface BentoBlock {
     | "mediaTop"
     | "banner"
 
-  span: number // 1–12
+  // Grid Engine
+  spanCols: number   // 1–12 (العرض)
+  spanRows: number   // 1–6  (الارتفاع)
+
   order: number
 
   // Link
