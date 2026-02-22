@@ -10,6 +10,8 @@ import rehypeSlug from 'rehype-slug'
 import remarkDirective from 'remark-directive'
 import remarkMath from 'remark-math'
 import UnoCSS from 'unocss/astro'
+import path from 'node:path'
+
 import { base, defaultLocale, themeConfig } from './src/config'
 import { langMap } from './src/i18n/config'
 import { rehypeCodeCopyButton } from './src/plugins/rehype-code-copy-button.mjs'
@@ -18,22 +20,27 @@ import { rehypeHeadingAnchor } from './src/plugins/rehype-heading-anchor.mjs'
 import { rehypeImageProcessor } from './src/plugins/rehype-image-processor.mjs'
 import { remarkContainerDirectives } from './src/plugins/remark-container-directives.mjs'
 import { remarkLeafDirectives } from './src/plugins/remark-leaf-directives.mjs'
-
 import { remarkReadingTime } from './src/plugins/remark-reading-time.mjs'
 
 const { url: site } = themeConfig.site
 const { imageHostURL } = themeConfig.preload ?? {}
+
 const imageConfig = imageHostURL
-  ? { image: { domains: [imageHostURL], remotePatterns: [{ protocol: 'https' }] } }
+  ? {
+      image: {
+        domains: [imageHostURL],
+        remotePatterns: [{ protocol: 'https' }],
+      },
+    }
   : {}
 
 export default defineConfig({
   site,
   base,
-  trailingSlash: 'always', // Not recommended to change
+  trailingSlash: 'always',
   prefetch: {
     prefetchAll: true,
-    defaultStrategy: 'viewport', // hover, tap, viewport, load
+    defaultStrategy: 'viewport',
   },
   ...imageConfig,
   i18n: {
@@ -43,19 +50,24 @@ export default defineConfig({
     })),
     defaultLocale,
   },
-  integrations: [UnoCSS({
-    injectReset: true,
-  }), mdx(), partytown({
-    config: {
-      forward: ['dataLayer.push', 'gtag'],
-    },
-  }), sitemap(), Compress({
-    CSS: true,
-    HTML: true,
-    Image: false,
-    JavaScript: true,
-    SVG: false,
-  }), react()],
+  integrations: [
+    UnoCSS({ injectReset: true }),
+    mdx(),
+    partytown({
+      config: {
+        forward: ['dataLayer.push', 'gtag'],
+      },
+    }),
+    sitemap(),
+    Compress({
+      CSS: true,
+      HTML: true,
+      Image: false,
+      JavaScript: true,
+      SVG: false,
+    }),
+    react(),
+  ],
   markdown: {
     remarkPlugins: [
       remarkDirective,
@@ -78,7 +90,6 @@ export default defineConfig({
       excludeLangs: ['mermaid'],
     },
     shikiConfig: {
-      // Available themes: https://shiki.style/themes
       themes: {
         light: 'github-light',
         dark: 'github-dark',
@@ -86,14 +97,16 @@ export default defineConfig({
     },
   },
   vite: {
+    resolve: {
+      alias: {
+        '@': path.resolve('./src'),
+      },
+    },
     plugins: [
       {
         name: 'prefix-font-urls-with-base',
         transform(code, id) {
-          if (!id.endsWith('src/styles/font.css')) {
-            return null
-          }
-
+          if (!id.endsWith('src/styles/font.css')) return null
           return code.replace(/url\("\/fonts\//g, `url("${base}/fonts/`)
         },
       },
@@ -102,7 +115,6 @@ export default defineConfig({
   devToolbar: {
     enabled: false,
   },
-  // For local development
   server: {
     headers: {
       'Access-Control-Allow-Origin': 'https://giscus.app',
