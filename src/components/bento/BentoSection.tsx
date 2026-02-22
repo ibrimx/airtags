@@ -1,5 +1,5 @@
-import AutoLayout from "./BentoLayout"
-import Card from "./Card"
+import BentoLayout from "./BentoLayout"
+import BentoCard from "./BentoCard"
 import { getBentoBlocks } from "@/lib/notion/bento"
 
 export default async function BentoSection() {
