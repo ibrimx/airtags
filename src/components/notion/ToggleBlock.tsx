@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints"
-import RichText from "./RichText"
-import BlockRenderer from "./BlockRenderer"
+import { RichText } from "./RichText"
+import { BlockRenderer } from "./BlockRenderer"
 
 interface Props {
   block: BlockObjectResponse
