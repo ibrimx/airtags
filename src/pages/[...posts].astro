@@ -12,28 +12,16 @@ import type { Post } from "@/lib/notion/types"
 ---------------------------- */
 
 export async function getStaticPaths() {
-  type PathItem = {
-    params: { posts: string | undefined }
-    props: { lang: string }
-  }
-
-  const paths: PathItem[] = []
-
-  // Default locale
-  paths.push({
-    params: { posts: undefined },
-    props: { lang: defaultLocale },
-  })
-
-  // Other locales
-  moreLocales.forEach((lang: string) => {
-    paths.push({
-      params: { posts: `${lang}/posts` },
+  return [
+    {
+      params: { posts: "posts" }, // مهم
+      props: { lang: defaultLocale },
+    },
+    ...moreLocales.map(lang => ({
+      params: { posts: `${lang}/posts` }, // مهم
       props: { lang },
-    })
-  })
-
-  return paths
+    })),
+  ]
 }
 
 /* ---------------------------
@@ -45,8 +33,6 @@ const { lang } = Astro.props
 const pinnedPosts = await getPinnedPosts(lang)
 const postsByYear = await getPostsByYear(lang)
 
-/* Notion posts for search */
-
 let searchPosts: Post[] = []
 
 if (import.meta.env.NOTION_TOKEN) {
@@ -55,7 +41,6 @@ if (import.meta.env.NOTION_TOKEN) {
 ---
 
 <Layout>
-
   {pinnedPosts.length > 0 && (
     <section class="mb-7.5">
       <div class="uno-decorative-line" />
@@ -69,5 +54,4 @@ if (import.meta.env.NOTION_TOKEN) {
       <PostList posts={posts} lang={lang} />
     </section>
   ))}
-
 </Layout>
