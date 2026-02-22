@@ -1,3 +1,5 @@
+// components/bento/BentoLayout.tsx
+
 import React from "react"
 
 interface BentoLayoutProps {
@@ -5,25 +7,32 @@ interface BentoLayoutProps {
   spans: number[]
 }
 
-export default function AutoLayout({
+export default function BentoLayout({
   children,
   spans,
 }: BentoLayoutProps) {
   const items = React.Children.toArray(children)
 
   return (
-    <div className="grid grid-cols-12 gap-6 w-full">
-      {items.map((child, index) => (
-        <div
-          key={index}
-          className={`
-            col-span-12
-            md:col-span-${spans[index] || 12}
-          `}
-        >
-          {child}
-        </div>
-      ))}
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+      {items.map((child, index) => {
+        const span = spans[index] || 12
+
+        return (
+          <div
+            key={index}
+            className="w-full"
+            style={{
+              gridColumn:
+                typeof window === "undefined"
+                  ? undefined
+                  : `span ${span} / span ${span}`,
+            }}
+          >
+            {child}
+          </div>
+        )
+      })}
     </div>
   )
 }
