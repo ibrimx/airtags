@@ -11,12 +11,14 @@ import { getSiteConfig } from "@/lib/notion/site-config"
 
 export async function getStaticPaths() {
   const paths: any[] = []
+  const usedSlugs = new Set<string>()
 
   const markdownPosts = await getCollection("posts")
 
   markdownPosts.forEach((post) => {
     if (!post.data.draft) {
       const slug = post.data.abbrlink || post.id
+      usedSlugs.add(slug.toLowerCase())
       paths.push({
         params: { posts_slug: `posts/${slug}/` },
         props: { source: "markdown" },
@@ -28,10 +30,12 @@ export async function getStaticPaths() {
     const notionPosts = await getPosts(false)
 
     notionPosts.forEach((post) => {
-      paths.push({
-        params: { posts_slug: `posts/${post.slug}/` },
-        props: { source: "notion" },
-      })
+      if (!usedSlugs.has(post.slug?.toLowerCase())) {
+        paths.push({
+          params: { posts_slug: `posts/${post.slug}/` },
+          props: { source: "notion" },
+        })
+      }
     })
   } catch {}
 
@@ -176,4 +180,3 @@ function normalizeDate(d: any) {
   margin-bottom: 1rem;
 }
 </style>
-```
