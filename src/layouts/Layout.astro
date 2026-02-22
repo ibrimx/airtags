@@ -14,6 +14,7 @@ import { getPosts } from '@/lib/notion/posts'
 import themeConfig from '@/config'
 import Head from '@/layouts/Head.astro'
 import { getPageInfo } from '@/utils/page'
+
 import '@/styles/comment.css'
 import '@/styles/extension.css'
 import '@/styles/font.css'
@@ -41,17 +42,25 @@ const {
 const { isPost } = getPageInfo(Astro.url.pathname)
 
 const fontStyle =
-  themeConfig.global.fontStyle === 'serif' ? 'font-serif' : 'font-sans'
+  themeConfig.global.fontStyle === 'serif'
+    ? 'font-serif'
+    : 'font-sans'
 
 const MarginBottom =
-  isPost && themeConfig.comment?.enabled ? 'mb-10' : 'mb-12'
+  isPost && themeConfig.comment?.enabled
+    ? 'mb-10'
+    : 'mb-12'
 
-const siteUrl = themeConfig.siteUrl
+/* ========= FIXED URL ========= */
+
+const siteUrl = Astro.url.origin
+
 const canonicalUrl =
-  postSlug ? `${siteUrl}${postSlug}` : `${siteUrl}${Astro.url.pathname}`
+  postSlug
+    ? `${siteUrl}/posts/${postSlug}/`
+    : `${siteUrl}${Astro.url.pathname}`
 
-const ogImage =
-  postImage || themeConfig.ogImage
+/* ========= SEARCH ========= */
 
 let searchPosts: Post[] = []
 
@@ -67,23 +76,12 @@ if (import.meta.env.NOTION_TOKEN) {
     { 'scroll-smooth': isPost },
   ]}
 >
-  <Head {postTitle} {postDescription} {postSlug} />
-
-  <!-- Canonical -->
-  <link rel="canonical" href={canonicalUrl} />
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="article" />
-  <meta property="og:title" content={postTitle || themeConfig.siteName} />
-  <meta property="og:description" content={postDescription || ''} />
-  <meta property="og:url" content={canonicalUrl} />
-  <meta property="og:image" content={ogImage} />
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content={postTitle || themeConfig.siteName} />
-  <meta name="twitter:description" content={postDescription || ''} />
-  <meta name="twitter:image" content={ogImage} />
+  <Head
+    postTitle={postTitle}
+    postDescription={postDescription}
+    postSlug={postSlug}
+    postImage={postImage}
+  />
 
   <body>
     <div
