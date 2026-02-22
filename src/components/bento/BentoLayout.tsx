@@ -1,38 +1,37 @@
 // components/bento/BentoLayout.tsx
 
-import React from "react"
+import type { BentoBlock } from "@/lib/notion/types"
+import BentoCard from "./BentoCard"
 
-interface BentoLayoutProps {
-  children: React.ReactNode
-  spans: number[]
+interface Props {
+  blocks: BentoBlock[]
 }
 
-export default function BentoLayout({
-  children,
-  spans,
-}: BentoLayoutProps) {
-  const items = React.Children.toArray(children)
-
+export default function BentoLayout({ blocks }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
-      {items.map((child, index) => {
-        const span = spans[index] || 12
-
-        return (
-          <div
-            key={index}
-            className="w-full"
-            style={{
-              gridColumn:
-                typeof window === "undefined"
-                  ? undefined
-                  : `span ${span} / span ${span}`,
-            }}
-          >
-            {child}
-          </div>
-        )
-      })}
+    <div
+      className="
+        grid gap-6 w-full
+        grid-cols-1
+        sm:grid-cols-2
+        md:grid-cols-12
+      "
+      style={{
+        gridAutoRows: "180px",
+        gridAutoFlow: "dense",
+      }}
+    >
+      {blocks.map((block) => (
+        <div
+          key={block.id}
+          style={{
+            gridColumn: `span ${block.spanCols} / span ${block.spanCols}`,
+            gridRow: `span ${block.spanRows} / span ${block.spanRows}`,
+          }}
+        >
+          <BentoCard block={block} />
+        </div>
+      ))}
     </div>
   )
 }
