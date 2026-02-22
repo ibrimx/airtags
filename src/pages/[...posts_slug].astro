@@ -1,168 +1,144 @@
 ---
-import type { CollectionEntry } from 'astro:content'
-import { getCollection, render } from 'astro:content'
-import Comment from '@/components/Comment/Index.astro'
-import PostDate from '@/components/PostDate.astro'
-import TagList from '@/components/TagList.astro'
-import BackButton from '@/components/Widgets/BackButton.astro'
-import TOC from '@/components/Widgets/TOC.astro'
-import { allLocales, defaultLocale, moreLocales } from '@/config'
-import Layout from '@/layouts/Layout.astro'
-import { checkPostSlugDuplication } from '@/utils/content'
-import { getPostDescription } from '@/utils/description'
+import type { CollectionEntry } from "astro:content"
+import { getCollection, render } from "astro:content"
+
+import Layout from "@/layouts/Layout.astro"
+import TOC from "@/components/Widgets/TOC.astro"
+
+import { getPosts } from "@/lib/notion/posts"
+import { getPostBlocks } from "@/lib/notion/blocks"
+import { BlockRenderer } from "@/components/notion/BlockRenderer"
+import { getSiteConfig } from "@/lib/notion/site-config"
+
+/* ========= STATIC PATHS ========= */
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts')
+  const markdownPosts = await getCollection("posts")
+  const notionPosts = await getPosts(false)
 
-  // Check if there are duplicate post slugs
-  const duplicates = await checkPostSlugDuplication(posts)
-  if (duplicates.length > 0) {
-    throw new Error(`Duplicate post slugs:\n${duplicates.join('\n')}`)
-  }
+  const paths: any[] = []
 
-  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // Use a Map to store the relationship between post slugs and their supported languages
-  // Set is used to store the supported languages for each post
-  const slugToLangsMap = posts.reduce((map, post) => {
-    const slug = post.data.abbrlink || post.id
-    const lang = post.data.lang
-
-    if (!map.has(slug)) {
-      map.set(slug, new Set(lang ? [lang] : allLocales))
-    }
-    else if (lang) {
-      map.get(slug)?.add(lang)
-    }
-
-    return map
-  }, new Map<string, Set<string>>())
-
-  // Convert Map<slug, Set<langs>> to Record<slug, langs[]> structure
-  // Sort languages according to the order defined in allLocales
-  const slugToLangs = Object.fromEntries(
-    Array.from(slugToLangsMap.entries()).map(([slug, langs]) => [
-      slug,
-      [...langs].sort((a, b) => allLocales.indexOf(a) - allLocales.indexOf(b)),
-    ]),
-  )
-  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-  type PathItem = {
-    params: { posts_slug: string }
-    props: { post: any, lang: string, supportedLangs: string[] }
-  }
-
-  const paths: PathItem[] = []
-
-  // Default locale
-  posts.forEach((post: CollectionEntry<'posts'>) => {
-    // Show drafts in dev mode only
-    if ((import.meta.env.DEV || !post.data.draft)
-      && (post.data.lang === defaultLocale || post.data.lang === '')) {
-      const slug = post.data.abbrlink || post.id
-
+  markdownPosts.forEach((post) => {
+    if (!post.data.draft) {
       paths.push({
-        params: { posts_slug: `posts/${slug}/` },
-        props: {
-          post,
-          lang: defaultLocale,
-          supportedLangs: slugToLangs[slug] ?? [],
-        },
+        params: { posts_slug: `posts/${post.id}/` },
+        props: { source: "markdown", post },
       })
     }
   })
 
-  // More locales
-  moreLocales.forEach((lang: string) => {
-    posts.forEach((post: CollectionEntry<'posts'>) => {
-      // Process posts with matching language or no language specified
-      if ((import.meta.env.DEV || !post.data.draft)
-        && (post.data.lang === lang || post.data.lang === '')) {
-        const slug = post.data.abbrlink || post.id
-        paths.push({
-          params: { posts_slug: `${lang}/posts/${slug}/` },
-          props: {
-            post,
-            lang,
-            supportedLangs: slugToLangs[slug] ?? [],
-          },
-        })
-      }
+  notionPosts.forEach((post) => {
+    paths.push({
+      params: { posts_slug: `posts/${post.slug}/` },
+      props: { source: "notion", slug: post.slug },
     })
   })
 
   return paths
 }
 
-const { post, lang, supportedLangs } = Astro.props
-const slug = post.data.abbrlink || post.id
-const description = getPostDescription(post, 'meta')
-const { Content, headings, remarkPluginFrontmatter } = await render(post)
+/* ========= RUNTIME ========= */
 
-if (slug === 'kun-lun-chao') {
-  await import('@/styles/posts/kunlunchao.css')
+const { source } = Astro.props
+const siteConfig = await getSiteConfig()
+
+let post: any
+let Content: any
+let headings: any[] = []
+let blocks: any[] = []
+
+if (source === "markdown") {
+  post = Astro.props.post
+  const rendered = await render(post)
+  Content = rendered.Content
+  headings = rendered.headings
 }
+
+if (source === "notion") {
+  const slug = Astro.params.posts_slug?.split("/").filter(Boolean).pop()
+  const notionPosts = await getPosts(false)
+
+  post = notionPosts.find(p => p.slug === slug)
+  if (!post) throw new Error("Post not found")
+
+  blocks = await getPostBlocks(post.id)
+}
+
+/* ========= NORMALIZE ========= */
+
+const title = post?.data?.title ?? post?.title
+const description =
+  post?.data?.description ?? post?.excerpt ?? ""
+const cover = post?.data?.cover ?? post?.cover
+const publishDate =
+  post?.data?.published ?? post?.publishDate
+const contentType =
+  post?.data?.contentType ?? post?.contentType ?? "essay"
+const tags = post?.data?.tags ?? post?.tags ?? []
+
+const layoutClass = `post-${contentType}`
+
+const seoTitle = `${title} | ${siteConfig.siteName}`
 ---
 
-<Layout
-  postTitle={post.data.title}
-  postDescription={description}
-  postSlug={post.id}
-  supportedLangs={supportedLangs}
->
-  <article class="heti">
-    <div class="relative">
-      <!-- Go Back Button On Desktop -->
-      <BackButton />
-      <!-- Title -->
-      <h1 class="post-title relative">
-        <span
-          transition:name={`post-${slug}${lang ? `-${lang}` : ''}`}
-          data-disable-theme-transition
-        >
-          {post.data.title}
-        </span>
-        {post.data.paid && (
-          <span
-            class="absolute right-0 top-0 rounded-full from-amber-500 to-orange-500 bg-gradient-to-r px-2 py-0.5 text-xs text-white font-medium shadow-sm"
-            aria-label="Paid content"
-          >
-            Paid
-          </span>
-        )}
-      </h1>
-    </div>
+<Layout postTitle={seoTitle} postDescription={description}>
 
-    <!-- Date -->
-    <div
-      id="post-date"
-      class="mb-17.2 block c-primary font-time"
-      transition:name={`time-${slug}${lang ? `-${lang}` : ''}`}
-      data-disable-theme-transition
-    >
-      <PostDate
-        date={post.data.published}
-        updatedDate={post.data.updated}
-        minutes={remarkPluginFrontmatter.minutes}
-      />
-    </div>
-    <!-- TOC -->
-    {post.data.toc && <TOC headings={headings} />}
-    <!-- Content -->
-    <div id="post-content">
-      <Content />
-      <!-- Copyright -->
-      <div id="post-copyright" />
-      <!-- Tag List -->
-      {post.data.tags?.length > 0 && (
-        <div class="mt-12.6 uno-decorative-line" />
-        <TagList
-          tags={post.data.tags}
-          lang={lang}
-        />
-      )}
-      <!-- Comment -->
-      <Comment />
-    </div>
+  <article class={`post-page ${layoutClass}`}>
+
+    {cover && (
+      <section class="post-hero">
+        <img src={cover} alt={title} />
+      </section>
+    )}
+
+    <h1>{title}</h1>
+
+    {publishDate && (
+      <time datetime={publishDate}>
+        {new Date(publishDate).toLocaleDateString()}
+      </time>
+    )}
+
+    {source === "markdown" && headings?.length > 0 && (
+      <TOC headings={headings} />
+    )}
+
+    <section class="post-content">
+      {source === "markdown" && <Content />}
+      {source === "notion" && <BlockRenderer blocks={blocks} />}
+    </section>
+
+    {tags.length > 0 && (
+      <ul class="post-tags">
+        {tags.map((tag: string) => (
+          <li>#{tag}</li>
+        ))}
+      </ul>
+    )}
+
   </article>
+
 </Layout>
+
+<style>
+.post-page {
+  margin: 0 auto;
+  padding: 3rem 0;
+}
+
+.post-journal .post-content {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.post-project .post-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.post-experiment .post-content {
+  border-left: 4px solid #333;
+  padding-left: 2rem;
+}
+</style>
