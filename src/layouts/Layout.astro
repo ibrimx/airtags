@@ -26,10 +26,18 @@ interface Props {
   postTitle?: string
   postDescription?: string
   postSlug?: string
+  postImage?: string
   supportedLangs?: string[]
 }
 
-const { postTitle, postDescription, postSlug, supportedLangs = [] } = Astro.props
+const {
+  postTitle,
+  postDescription,
+  postSlug,
+  postImage,
+  supportedLangs = [],
+} = Astro.props
+
 const { isPost } = getPageInfo(Astro.url.pathname)
 
 const fontStyle =
@@ -38,7 +46,13 @@ const fontStyle =
 const MarginBottom =
   isPost && themeConfig.comment?.enabled ? 'mb-10' : 'mb-12'
 
-// Prevent build crash if Notion token is missing
+const siteUrl = themeConfig.siteUrl
+const canonicalUrl =
+  postSlug ? `${siteUrl}${postSlug}` : `${siteUrl}${Astro.url.pathname}`
+
+const ogImage =
+  postImage || themeConfig.ogImage
+
 let searchPosts: Post[] = []
 
 if (import.meta.env.NOTION_TOKEN) {
@@ -55,6 +69,22 @@ if (import.meta.env.NOTION_TOKEN) {
 >
   <Head {postTitle} {postDescription} {postSlug} />
 
+  <!-- Canonical -->
+  <link rel="canonical" href={canonicalUrl} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content={postTitle || themeConfig.siteName} />
+  <meta property="og:description" content={postDescription || ''} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:image" content={ogImage} />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={postTitle || themeConfig.siteName} />
+  <meta name="twitter:description" content={postDescription || ''} />
+  <meta name="twitter:image" content={ogImage} />
+
   <body>
     <div
       class="mx-auto max-w-205.848 min-h-vh w-full min-h-dvh"
@@ -64,7 +94,6 @@ if (import.meta.env.NOTION_TOKEN) {
       <Header />
       <Navbar />
 
-      <!-- Search Overlay (global, mounted once) -->
       <SearchOverlay posts={searchPosts} client:load />
 
       <main class={MarginBottom}>
