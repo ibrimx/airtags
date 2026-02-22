@@ -1,18 +1,29 @@
 import { notion } from "./client"
 
-export async function getPostBlocks(blockId: string) {
+/* ----------------------------------
+   Recursive Block Fetch
+-----------------------------------*/
+
+export async function getBlocksRecursive(
+  blockId: string
+): Promise<any[]> {
+
   const blocks: any[] = []
-  let cursor: string | undefined = undefined
 
-  do {
-    const res = await notion.blocks.children.list({
-      block_id: blockId,
-      start_cursor: cursor,
-    })
+  const response = await notion.blocks.children.list({
+    block_id: blockId,
+    page_size: 100,
+  })
 
-    blocks.push(...res.results)
-    cursor = res.has_more ? res.next_cursor ?? undefined : undefined
-  } while (cursor)
+  for (const block of response.results) {
+    const enriched: any = { ...block }
+
+    if ("has_children" in block && block.has_children) {
+      enriched.children = await getBlocksRecursive(block.id)
+    }
+
+    blocks.push(enriched)
+  }
 
   return blocks
 }
