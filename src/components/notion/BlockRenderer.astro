@@ -1,0 +1,164 @@
+---
+import BlockRenderer from "./BlockRenderer.astro"
+
+const { blocks = [] } = Astro.props
+
+function text(rich = []) {
+  return rich.map(t => t.plain_text).join("")
+}
+---
+
+{blocks.map((block) => {
+
+  /* ================= PARAGRAPH ================= */
+  if (block.type === "paragraph") {
+    return <p>{text(block.paragraph?.rich_text)}</p>
+  }
+
+  /* ================= HEADINGS ================= */
+  if (block.type === "heading_1") {
+    return <h1>{text(block.heading_1?.rich_text)}</h1>
+  }
+
+  if (block.type === "heading_2") {
+    return <h2>{text(block.heading_2?.rich_text)}</h2>
+  }
+
+  if (block.type === "heading_3") {
+    return <h3>{text(block.heading_3?.rich_text)}</h3>
+  }
+
+  /* ================= BULLETED LIST ================= */
+  if (block.type === "bulleted_list_item") {
+    return (
+      <ul>
+        <li>
+          {text(block.bulleted_list_item?.rich_text)}
+          {block.children?.length > 0 && (
+            <BlockRenderer blocks={block.children} />
+          )}
+        </li>
+      </ul>
+    )
+  }
+
+  /* ================= NUMBERED LIST ================= */
+  if (block.type === "numbered_list_item") {
+    return (
+      <ol>
+        <li>
+          {text(block.numbered_list_item?.rich_text)}
+          {block.children?.length > 0 && (
+            <BlockRenderer blocks={block.children} />
+          )}
+        </li>
+      </ol>
+    )
+  }
+
+  /* ================= QUOTE ================= */
+  if (block.type === "quote") {
+    return <blockquote>{text(block.quote?.rich_text)}</blockquote>
+  }
+
+  /* ================= CALLOUT ================= */
+  if (block.type === "callout") {
+    return (
+      <div class="notion-callout">
+        {text(block.callout?.rich_text)}
+      </div>
+    )
+  }
+
+  /* ================= TOGGLE ================= */
+  if (block.type === "toggle") {
+    return (
+      <details>
+        <summary>{text(block.toggle?.rich_text)}</summary>
+        {block.children?.length > 0 && (
+          <BlockRenderer blocks={block.children} />
+        )}
+      </details>
+    )
+  }
+
+  /* ================= CODE ================= */
+  if (block.type === "code") {
+    const raw = text(block.code?.rich_text)
+    return (
+      <pre>
+        <code>{raw}</code>
+      </pre>
+    )
+  }
+
+  /* ================= IMAGE ================= */
+  if (block.type === "image") {
+    const src =
+      block.image?.file?.url ||
+      block.image?.external?.url
+
+    if (!src) return null
+
+    return (
+      <figure>
+        <img src={src} loading="lazy" />
+        {block.image?.caption?.length > 0 && (
+          <figcaption>{text(block.image.caption)}</figcaption>
+        )}
+      </figure>
+    )
+  }
+
+  /* ================= VIDEO ================= */
+  if (block.type === "video") {
+    const src =
+      block.video?.file?.url ||
+      block.video?.external?.url
+
+    if (!src) return null
+
+    return (
+      <video controls>
+        <source src={src} />
+      </video>
+    )
+  }
+
+  /* ================= DIVIDER ================= */
+  if (block.type === "divider") {
+    return <hr />
+  }
+
+  /* ================= TABLE ================= */
+  if (block.type === "table") {
+    return (
+      <table>
+        <tbody>
+          {block.children?.map((row) => (
+            <tr>
+              {row.table_row?.cells?.map((cell) => (
+                <td>{text(cell)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+
+  /* ================= COLUMNS ================= */
+  if (block.type === "column_list") {
+    return (
+      <div class="columns">
+        {block.children?.map((col) => (
+          <div class="column">
+            <BlockRenderer blocks={col.children || []} />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return null
+})}
