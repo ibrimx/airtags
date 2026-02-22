@@ -1,46 +1,62 @@
 /*!
  * Markdown + Notion Reading System
- * Optimized Typography Layer
+ * Pure CSS - No UnoCSS Required
  */
 
 /* Base */
 .heti {
-  --at-apply: 'break-words leading-1.9 hyphens-auto text-1.05rem cjk:tracking-0.02em';
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.9;
+  hyphens: auto;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
   max-width: 720px;
   margin: 0 auto;
 }
 
 /* Title */
 .heti .post-title {
-  --at-apply: 'mt-0 mb-4 text-9 font-semibold leading-1.2';
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 /* Headings */
 .heti :where(h1, h2, h3, h4, h5, h6) {
-  --at-apply: 'scroll-mt-20 font-semibold text-balance';
+  scroll-margin-top: 5rem;
+  font-weight: 600;
+  text-wrap: balance;
   margin-top: 2.4rem;
   margin-bottom: 1rem;
 }
 
-.heti h1 { --at-apply: 'text-8 c-primary'; }
-.heti h2 { --at-apply: 'text-7 c-primary'; }
-.heti h3 { --at-apply: 'text-6'; }
-.heti h4 { --at-apply: 'text-5'; }
-.heti h5 { --at-apply: 'text-4.5'; }
-.heti h6 { --at-apply: 'text-4'; }
+.heti h1 { font-size: 2rem; }
+.heti h2 { font-size: 1.75rem; }
+.heti h3 { font-size: 1.5rem; }
+.heti h4 { font-size: 1.25rem; }
+.heti h5 { font-size: 1.125rem; }
+.heti h6 { font-size: 1rem; }
 
 /* Paragraph */
-.heti :where(p:not(.no-heti):not(.no-heti *)) {
+.heti p {
   margin: 1.4rem 0;
-  --at-apply: 'text-pretty cjk:text-justify';
+  text-wrap: pretty;
+  text-align: justify;
 }
 
 /* Links */
 .heti a {
-  --at-apply: 'underline decoration-secondary/60 underline-offset-3 transition-colors';
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(128, 128, 128, 0.6);
+  transition: color 0.2s, text-decoration-color 0.2s;
 }
 .heti a:hover {
-  --at-apply: 'c-primary decoration-primary';
+  color: #333;
+  text-decoration-color: #333;
 }
 
 /* Images */
@@ -49,6 +65,7 @@
   margin: 2rem auto;
   border-radius: 14px;
   max-width: 100%;
+  height: auto;
 }
 
 /* Figures */
@@ -56,7 +73,10 @@
   margin: 2rem 0;
 }
 .heti figcaption {
-  --at-apply: 'text-sm c-secondary/70 text-center mt-2';
+  font-size: 0.875rem;
+  color: rgba(128, 128, 128, 0.7);
+  text-align: center;
+  margin-top: 0.5rem;
 }
 
 /* Lists */
@@ -67,14 +87,15 @@
 }
 .heti li {
   margin: 0.5rem 0;
+  line-height: 1.8;
 }
 
 /* Blockquote */
 .heti blockquote {
   margin: 2rem 0;
   padding-left: 1.2rem;
-  border-left: 4px solid oklch(var(--un-preset-theme-colors-secondary) / 0.4);
-  --at-apply: 'c-secondary/85';
+  border-left: 4px solid rgba(128, 128, 128, 0.4);
+  color: rgba(100, 100, 100, 0.85);
 }
 
 /* Code Block */
@@ -83,16 +104,20 @@
   padding: 1.4rem;
   border-radius: 14px;
   overflow-x: auto;
-  --at-apply: 'bg-secondary/5';
+  background: rgba(128, 128, 128, 0.05);
 }
 
 .heti pre code {
-  --at-apply: 'bg-transparent p-0';
+  background: transparent;
+  padding: 0;
 }
 
 /* Inline Code */
 .heti code:not(pre code) {
-  --at-apply: 'px-0.4em py-0.2em text-0.9em bg-secondary/10 rounded-md';
+  padding: 0.15em 0.4em;
+  font-size: 0.9em;
+  background: rgba(128, 128, 128, 0.1);
+  border-radius: 6px;
 }
 
 /* Tables */
@@ -104,7 +129,12 @@
 .heti th,
 .heti td {
   padding: 0.6rem;
-  border-bottom: 1px solid oklch(var(--un-preset-theme-colors-secondary) / 0.2);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  text-align: left;
+}
+.heti th {
+  font-weight: 600;
+  background: rgba(128, 128, 128, 0.05);
 }
 
 /* Divider */
@@ -127,7 +157,7 @@
 .heti sup { top: -0.4em; }
 .heti sub { bottom: -0.2em; }
 
-/* Toggle (Notion support) */
+/* Toggle */
 .heti details {
   margin: 1.5rem 0;
 }
@@ -141,21 +171,59 @@
   margin: 2rem 0;
   padding: 1rem 1.2rem;
   border-radius: 12px;
-  background: oklch(var(--un-preset-theme-colors-secondary) / 0.08);
+  background: rgba(128, 128, 128, 0.08);
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
 }
 
 /* Columns */
-.heti .columns {
-  display: grid;
+.heti .notion-columns {
+  display: flex;
   gap: 2rem;
+  margin: 1.5rem 0;
 }
-@media (min-width: 900px) {
-  .heti .columns {
-    grid-template-columns: 1fr 1fr;
+.heti .notion-column {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .heti .notion-columns {
+    flex-direction: column;
   }
 }
 
-/* Improve Reading Focus */
+/* Table overflow wrapper */
+.heti .table-wrapper {
+  overflow-x: auto;
+  margin: 2rem 0;
+}
+
+/* Post Page */
 .post-page {
   padding: 4rem 1.2rem;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .heti {
+    color: #e0e0e0;
+  }
+  .heti a:hover {
+    color: #fff;
+    text-decoration-color: #fff;
+  }
+  .heti pre {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .heti code:not(pre code) {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .heti .notion-callout {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .heti th {
+    background: rgba(255, 255, 255, 0.05);
+  }
 }
