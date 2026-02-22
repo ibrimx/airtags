@@ -1,58 +1,10 @@
 import React from "react"
 import { RichText } from "./RichText"
 
-function groupListBlocks(blocks: any[]) {
-  const result: any[] = []
-  let buffer: any[] = []
-
-  const flush = () => {
-    if (buffer.length) {
-      result.push({
-        type: buffer[0].type,
-        items: buffer,
-      })
-      buffer = []
-    }
-  }
-
-  for (const block of blocks) {
-    if (
-      block.type === "bulleted_list_item" ||
-      block.type === "numbered_list_item"
-    ) {
-      buffer.push(block)
-    } else {
-      flush()
-      result.push(block)
-    }
-  }
-
-  flush()
-  return result
-}
-
 export function BlockRenderer({ blocks }: { blocks: any[] }) {
-  const grouped = groupListBlocks(blocks)
-
   return (
     <>
-      {grouped.map((block: any) => {
-        // grouped list
-        if (block.items) {
-          const Tag =
-            block.type === "bulleted_list_item" ? "ul" : "ol"
-
-          return (
-            <Tag key={block.items[0].id}>
-              {block.items.map((item: any) => (
-                <li key={item.id}>
-                  <RichText text={item[item.type].rich_text} />
-                </li>
-              ))}
-            </Tag>
-          )
-        }
-
+      {blocks.map((block) => {
         switch (block.type) {
           case "paragraph":
             return (
@@ -63,48 +15,48 @@ export function BlockRenderer({ blocks }: { blocks: any[] }) {
 
           case "heading_1":
             return (
-              <h1 id={block.id} key={block.id}>
+              <h1 key={block.id}>
                 <RichText text={block.heading_1.rich_text} />
               </h1>
             )
 
           case "heading_2":
             return (
-              <h2 id={block.id} key={block.id}>
+              <h2 key={block.id}>
                 <RichText text={block.heading_2.rich_text} />
               </h2>
             )
 
           case "heading_3":
             return (
-              <h3 id={block.id} key={block.id}>
+              <h3 key={block.id}>
                 <RichText text={block.heading_3.rich_text} />
               </h3>
             )
 
-          case "quote":
+          case "bulleted_list_item":
             return (
-              <blockquote key={block.id}>
-                <RichText text={block.quote.rich_text} />
-              </blockquote>
+              <ul key={block.id}>
+                <li>
+                  <RichText text={block.bulleted_list_item.rich_text} />
+                </li>
+              </ul>
             )
 
-          case "callout":
+          case "numbered_list_item":
             return (
-              <div key={block.id} className="callout">
-                <RichText text={block.callout.rich_text} />
-              </div>
+              <ol key={block.id}>
+                <li>
+                  <RichText text={block.numbered_list_item.rich_text} />
+                </li>
+              </ol>
             )
 
           case "code":
-            const codeText = block.code.rich_text
-              .map((t: any) => t.plain_text)
-              .join("")
-
             return (
               <pre key={block.id}>
-                <code className={`language-${block.code.language}`}>
-                  {codeText}
+                <code>
+                  {block.code.rich_text.map((t: any) => t.plain_text).join("")}
                 </code>
               </pre>
             )
@@ -120,7 +72,6 @@ export function BlockRenderer({ blocks }: { blocks: any[] }) {
                 src={img}
                 loading="lazy"
                 alt=""
-                className="post-image"
               />
             )
 
