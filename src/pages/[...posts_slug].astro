@@ -6,82 +6,190 @@ import Layout from "@/layouts/Layout.astro"
 import TOC from "@/components/Widgets/TOC.astro"
 
 import { getPosts } from "@/lib/notion/posts"
-import { getPostBlocks } from "@/lib/notion/blocks"
+import { getBlocksRecursive } from "@/lib/notion/blocks"
 import { BlockRenderer } from "@/components/notion/BlockRenderer"
 import { getSiteConfig } from "@/lib/notion/site-config"
 
-/* ========= STATIC PATHS ========= */
+/* ============================
+   STATIC PATHS
+============================ */
 
 export async function getStaticPaths() {
-  const markdownPosts = await getCollection("posts")
-  const notionPosts = await getPosts(false)
-
   const paths: any[] = []
+
+  const markdownPosts = await getCollection("posts")
 
   markdownPosts.forEach((post) => {
     if (!post.data.draft) {
+      const slug = post.data.abbrlink || post.id
       paths.push({
-        params: { posts_slug: `posts/${post.id}/` },
-        props: { source: "markdown", post },
+        params: { posts_slug: `posts/${slug}/` },
+        props: { source: "markdown", slug },
       })
     }
   })
 
-  notionPosts.forEach((post) => {
-    paths.push({
-      params: { posts_slug: `posts/${post.slug}/` },
-      props: { source: "notion", slug: post.slug },
+  try {
+    const notionPosts = await getPosts(false)
+
+    notionPosts.forEach((post) => {
+      paths.push({
+        params: { posts_slug: `posts/${post.slug}/` },
+        props: { source: "notion", slug: post.slug },
+      })
     })
-  })
+  } catch {}
 
   return paths
 }
 
-/* ========= RUNTIME ========= */
+/* ============================
+   RUNTIME
+============================ */
 
-const { source } = Astro.props
+const { source, slug } = Astro.props
 const siteConfig = await getSiteConfig()
 
-let post: any
-let Content: any
+let title = ""
+let description = ""
+let cover = ""
+let publishDate: string | undefined
+let contentType = "essay"
+let tags: string[] = []
+
+let Content: any = null
 let headings: any[] = []
 let blocks: any[] = []
 
+/* ========= MARKDOWN ========= */
+
 if (source === "markdown") {
-  post = Astro.props.post
-  const rendered = await render(post)
-  Content = rendered.Content
-  headings = rendered.headings
-}
+  const posts = await getCollection("posts")
 
-if (source === "notion") {
-  const slug = Astro.params.posts_slug?.split("/").filter(Boolean).pop()
-  const notionPosts = await getPosts(false)
+  const post = posts.find((p) => {
+    const s = p.data.abbrlink || p.id
+    return s === slug
+  })
 
-  post = notionPosts.find(p => p.slug === slug)
   if (!post) throw new Error("Post not found")
 
-  blocks = await getPostBlocks(post.id)
+  const rendered = await render(post)
+
+  Content = rendered.Content
+  headings = rendered.headings
+
+  title = post.data.title
+  description = post.data.description ?? ""
+  cover = post.data.cover ?? ""
+  publishDate = post.data.published
+  contentType = post.data.contentType ?? "essay"
+  tags = post.data.tags ?? []
 }
 
-/* ========= NORMALIZE ========= */
+/* ========= NOTION ========= */
 
-const title = post?.data?.title ?? post?.title
-const description =
-  post?.data?.description ?? post?.excerpt ?? ""
-const cover = post?.data?.cover ?? post?.cover
-const publishDate =
-  post?.data?.published ?? post?.publishDate
-const contentType =
-  post?.data?.contentType ?? post?.contentType ?? "essay"
-const tags = post?.data?.tags ?? post?.tags ?? []
+if (source === "notion") {
+  const notionPosts = await getPosts(false)
+
+  const post = notionPosts.find((p) => p.slug === slug)
+  if (!post) throw new Error("Post not found")
+
+  blocks = await getBlocksRecursive(post.id)
+
+  title = post.title
+  description = post.excerpt ?? ""
+  cover = post.cover ?? ""
+  publishDate = post.publishDate
+  contentType = post.contentType ?? "essay"
+  tags = post.tags ?? []
+}
+
+/* ============================
+   SEO + STRUCTURED DATA
+============================ */
 
 const layoutClass = `post-${contentType}`
-
 const seoTitle = `${title} | ${siteConfig.siteName}`
+const url = `${siteConfig.siteUrl}/posts/${slug}/`
+
+function generateSchema() {
+  const base = {
+    "@context": "https://schema.org",
+    "@id": url,
+    headline: title,
+    description,
+    image: cover || siteConfig.ogImage,
+    datePublished: publishDate,
+    dateModified: publishDate,
+    author: {
+      "@type": "Person",
+      name: siteConfig.authorName,
+      url: siteConfig.siteUrl,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.siteName,
+      logo: {
+        "@type": "ImageObject",
+        url: siteConfig.ogImage,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+  }
+
+  if (contentType === "project") {
+    return { ...base, "@type": "CreativeWork" }
+  }
+
+  if (contentType === "experiment") {
+    return { ...base, "@type": "TechArticle" }
+  }
+
+  if (contentType === "journal") {
+    return { ...base, "@type": "BlogPosting" }
+  }
+
+  return { ...base, "@type": "Article" }
+}
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: siteConfig.siteUrl,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Posts",
+      item: `${siteConfig.siteUrl}/posts/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: title,
+      item: url,
+    },
+  ],
+}
 ---
 
 <Layout postTitle={seoTitle} postDescription={description}>
+
+  <script type="application/ld+json">
+    {JSON.stringify(generateSchema())}
+  </script>
+
+  <script type="application/ld+json">
+    {JSON.stringify(breadcrumbSchema)}
+  </script>
 
   <article class={`post-page ${layoutClass}`}>
 
@@ -110,7 +218,7 @@ const seoTitle = `${title} | ${siteConfig.siteName}`
 
     {tags.length > 0 && (
       <ul class="post-tags">
-        {tags.map((tag: string) => (
+        {tags.map((tag) => (
           <li>#{tag}</li>
         ))}
       </ul>
