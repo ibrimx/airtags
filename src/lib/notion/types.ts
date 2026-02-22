@@ -1,13 +1,3 @@
-export interface Post {
-  id: string
-  title: string
-  slug: string
-  excerpt?: string
-  cover?: string
-  published?: boolean
-  date?: string
-}
-
 
 // S I T E - C O N F I G 
 export interface SiteConfig {
@@ -98,4 +88,36 @@ export interface BentoBlock {
     | "outline"
 
   published: boolean
+}
+
+// P O S T S
+export type PostStatus =
+  | "idea"
+  | "draft"
+  | "scheduled"
+  | "published"
+
+export type ContentType =
+  | "essay"
+  | "travel"
+  | "project"
+  | "experiment"
+  | "journal"
+
+export interface Post {
+  id: string
+  title: string
+  slug: string
+  excerpt?: string
+  cover?: string | null
+  status: PostStatus
+  publishDate?: string
+  updatedDate?: string
+  contentType: ContentType
+  category?: string
+  tags?: string[]
+  featured: boolean
+  pinned: boolean
+  showTOC: boolean
+  enableComments: boolean
 }
