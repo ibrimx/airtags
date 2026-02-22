@@ -12,16 +12,28 @@ import type { Post } from "@/lib/notion/types"
 ---------------------------- */
 
 export async function getStaticPaths() {
-  return [
-    {
-      params: { posts: "posts" }, // مهم
-      props: { lang: defaultLocale },
-    },
-    ...moreLocales.map(lang => ({
-      params: { posts: `${lang}/posts` }, // مهم
+  type PathItem = {
+    params: { posts: string }
+    props: { lang: string }
+  }
+
+  const paths: PathItem[] = []
+
+  // Default locale
+  paths.push({
+    params: { posts: 'posts/' }, // نفس النمط
+    props: { lang: defaultLocale },
+  })
+
+  // More locales
+  moreLocales.forEach((lang: string) => {
+    paths.push({
+      params: { posts: `${lang}/posts/` }, // نفس النمط
       props: { lang },
-    })),
-  ]
+    })
+  })
+
+  return paths
 }
 
 /* ---------------------------
