@@ -73,15 +73,15 @@ function isUrl(uri: string): boolean {
 }
 ---
 
-<nav
-  aria-label="Site Navigation"
-  class:list={[
-    isPost ? 'hidden lg:block' : '',
-    'mb-10.5 text-3.6 font-semibold leading-2.45em font-navbar',
-    'lg:(uno-desktop-column text-4)',
-    'cjk:tracking-0.02em',
-  ]}
->
+<nav    
+  aria-label="Site Navigation"    
+  class:list={[    
+    isPost ? 'hidden lg:block' : '',    
+    'mb-10.5 text-3.6 font-semibold leading-2.45em font-navbar',    
+    'lg:(uno-desktop-column text-4 bottom-[8.2rem]) cjk:tracking-0.02em',    
+  ]}    
+>    
+    
   <ul class="flex flex-row gap-x-3 lg:flex-col lg:gap-0">
     {navItems.map(item => (
       <li>
