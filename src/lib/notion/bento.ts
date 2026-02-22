@@ -1,3 +1,5 @@
+// src/lib/notion/bento.ts
+
 import { notion } from "./client"
 import type { BentoBlock } from "./types"
 
@@ -11,7 +13,7 @@ export async function getBentoBlocks(): Promise<BentoBlock[]> {
     sorts: [{ property: "Order", direction: "ascending" }],
   })
 
-  return res.results.map((item: any): BentoBlock => ({
+  return res.results.map((item: any) => ({
     id: item.id,
     title: item.properties.Title?.title?.[0]?.plain_text || "",
     description:
@@ -20,21 +22,16 @@ export async function getBentoBlocks(): Promise<BentoBlock[]> {
       item.properties.Image?.files?.[0]?.file?.url ||
       item.properties.Image?.files?.[0]?.external?.url ||
       null,
+    spanCols: item.properties.SpanCols?.number || 12,
+    spanRows: item.properties.SpanRows?.number || 1,
+    order: item.properties.Order?.number || 0,
     layout:
       item.properties.Layout?.select?.name || "stack",
-    span:
-      Math.min(
-        12,
-        Math.max(1, item.properties.Span?.number || 12)
-      ),
-    order: item.properties.Order?.number || 0,
     linkText:
       item.properties["Link Text"]?.rich_text?.[0]?.plain_text || "",
     linkHref:
       item.properties["Link URL"]?.url || "",
     styleVariant:
       item.properties["Style Variant"]?.select?.name || "surface",
-    published:
-      item.properties.Published?.checkbox ?? false,
   }))
 }
