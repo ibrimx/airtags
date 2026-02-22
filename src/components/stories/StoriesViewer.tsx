@@ -32,13 +32,16 @@ export default function StoriesViewer({
   const [progress, setProgress] = useState(0)
   const [paused, setPaused] = useState(false)
 
-  const intervalRef = useRef<any>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const startX = useRef<number | null>(null)
 
   const currentSlide = slides[slideIndex]
-  const currentStory: StoryItem = currentSlide.stories[storyIndex]
+  const currentStory: StoryItem | undefined =
+    currentSlide?.items?.[storyIndex]
 
-  const durationMs = (currentStory.duration || 5) * 1000
+  if (!currentSlide || !currentStory) return null
+
+  const durationMs = (currentStory.duration ?? 5) * 1000
 
   useEffect(() => {
     if (paused) return
@@ -51,18 +54,21 @@ export default function StoriesViewer({
       setProgress(percent)
 
       if (percent >= 100) {
-        clearInterval(intervalRef.current)
+        clearInterval(intervalRef.current as NodeJS.Timeout)
         handleNext()
       }
     }, 50)
 
-    return () => clearInterval(intervalRef.current)
+    return () => {
+      if (intervalRef.current)
+        clearInterval(intervalRef.current)
+    }
   }, [slideIndex, storyIndex, paused])
 
   function handleNext() {
     setProgress(0)
 
-    if (storyIndex < currentSlide.stories.length - 1) {
+    if (storyIndex < currentSlide.items.length - 1) {
       setStoryIndex((prev) => prev + 1)
     } else if (slideIndex < slides.length - 1) {
       setSlideIndex((prev) => prev + 1)
@@ -80,7 +86,7 @@ export default function StoriesViewer({
     } else if (slideIndex > 0) {
       const prevSlide = slides[slideIndex - 1]
       setSlideIndex((prev) => prev - 1)
-      setStoryIndex(prevSlide.stories.length - 1)
+      setStoryIndex(prevSlide.items.length - 1)
     }
   }
 
@@ -101,6 +107,7 @@ export default function StoriesViewer({
     setPaused(false)
 
     if (startX.current === null) return
+
     const diff = e.changedTouches[0].clientX - startX.current
 
     if (diff > 50) handlePrev()
@@ -110,8 +117,10 @@ export default function StoriesViewer({
   }
 
   const background =
-    backgroundMap[currentStory.background] ||
-    backgroundMap.default
+    currentStory.background &&
+    backgroundMap[currentStory.background]
+      ? backgroundMap[currentStory.background]
+      : backgroundMap.default
 
   return (
     <div
@@ -129,10 +138,11 @@ export default function StoriesViewer({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Progress Bars */}
       <div style={{ display: "flex", gap: 4, padding: 8 }}>
-        {currentSlide.stories.map((_, i) => (
+        {currentSlide.items.map((item: StoryItem, i: number) => (
           <div
-            key={i}
+            key={item.id}
             style={{
               flex: 1,
               height: 3,
@@ -147,11 +157,13 @@ export default function StoriesViewer({
         ))}
       </div>
 
+      {/* Content */}
       <div style={{ padding: 24, textAlign: "center" }}>
         {currentStory.type === "image" && currentStory.media && (
           <img
             src={currentStory.media}
             style={{ maxWidth: "100%", maxHeight: "60vh" }}
+            alt={currentStory.title}
           />
         )}
 
@@ -165,7 +177,9 @@ export default function StoriesViewer({
         )}
 
         {currentStory.caption && (
-          <p style={{ marginTop: 16 }}>{currentStory.caption}</p>
+          <p style={{ marginTop: 16 }}>
+            {currentStory.caption}
+          </p>
         )}
       </div>
     </div>
