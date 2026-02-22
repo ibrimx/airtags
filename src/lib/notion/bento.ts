@@ -1,19 +1,6 @@
 import { notion } from "./client"
 import type { BentoBlock } from "./types"
 
-export interface BentoBlock {
-  id: string
-  title: string
-  description?: string
-  image?: string | null
-  layout: "stack" | "split" | "overlay" | "center" | "mediaTop" | "banner"
-  span: number
-  order: number
-  linkText?: string
-  linkHref?: string
-  styleVariant?: string
-}
-
 export async function getBentoBlocks(): Promise<BentoBlock[]> {
   const res = await notion.databases.query({
     database_id: process.env.NOTION_BENTO_DB!,
@@ -24,7 +11,7 @@ export async function getBentoBlocks(): Promise<BentoBlock[]> {
     sorts: [{ property: "Order", direction: "ascending" }],
   })
 
-  return res.results.map((item: any) => ({
+  return res.results.map((item: any): BentoBlock => ({
     id: item.id,
     title: item.properties.Title?.title?.[0]?.plain_text || "",
     description:
@@ -47,5 +34,7 @@ export async function getBentoBlocks(): Promise<BentoBlock[]> {
       item.properties["Link URL"]?.url || "",
     styleVariant:
       item.properties["Style Variant"]?.select?.name || "surface",
+    published:
+      item.properties.Published?.checkbox ?? false,
   }))
 }
