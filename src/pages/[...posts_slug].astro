@@ -50,6 +50,10 @@ export async function getStaticPaths() {
 const { source, slug } = Astro.props
 const siteConfig = await getSiteConfig()
 
+const previewSecret = import.meta.env.PREVIEW_SECRET
+const preview =
+  Astro.url.searchParams.get("preview") === previewSecret
+
 let title = ""
 let description = ""
 let cover = ""
@@ -89,7 +93,7 @@ if (source === "markdown") {
 /* ========= NOTION ========= */
 
 if (source === "notion") {
-  const notionPosts = await getPosts(false)
+  const notionPosts = await getPosts(preview)
 
   const post = notionPosts.find((p) => p.slug === slug)
   if (!post) throw new Error("Post not found")
@@ -105,12 +109,13 @@ if (source === "notion") {
 }
 
 /* ============================
-   SEO + STRUCTURED DATA
+   SEO + OG + STRUCTURED DATA
 ============================ */
 
 const layoutClass = `post-${contentType}`
 const seoTitle = `${title} | ${siteConfig.siteName}`
 const url = `${siteConfig.siteUrl}/posts/${slug}/`
+const ogImage = cover || siteConfig.ogImage
 
 function generateSchema() {
   const base = {
@@ -118,7 +123,7 @@ function generateSchema() {
     "@id": url,
     headline: title,
     description,
-    image: cover || siteConfig.ogImage,
+    image: ogImage,
     datePublished: publishDate,
     dateModified: publishDate,
     author: {
@@ -140,17 +145,14 @@ function generateSchema() {
     },
   }
 
-  if (contentType === "project") {
+  if (contentType === "project")
     return { ...base, "@type": "CreativeWork" }
-  }
 
-  if (contentType === "experiment") {
+  if (contentType === "experiment")
     return { ...base, "@type": "TechArticle" }
-  }
 
-  if (contentType === "journal") {
+  if (contentType === "journal")
     return { ...base, "@type": "BlogPosting" }
-  }
 
   return { ...base, "@type": "Article" }
 }
@@ -181,8 +183,14 @@ const breadcrumbSchema = {
 }
 ---
 
-<Layout postTitle={seoTitle} postDescription={description}>
+<Layout
+  postTitle={seoTitle}
+  postDescription={description}
+  postImage={ogImage}
+  postSlug={`/posts/${slug}/`}
+>
 
+  <!-- Structured Data -->
   <script type="application/ld+json">
     {JSON.stringify(generateSchema())}
   </script>
@@ -213,7 +221,9 @@ const breadcrumbSchema = {
 
     <section class="post-content">
       {source === "markdown" && <Content />}
-      {source === "notion" && <BlockRenderer blocks={blocks} />}
+      {source === "notion" && (
+        <BlockRenderer blocks={blocks} />
+      )}
     </section>
 
     {tags.length > 0 && (
@@ -227,26 +237,3 @@ const breadcrumbSchema = {
   </article>
 
 </Layout>
-
-<style>
-.post-page {
-  margin: 0 auto;
-  padding: 3rem 0;
-}
-
-.post-journal .post-content {
-  max-width: 680px;
-  margin: 0 auto;
-}
-
-.post-project .post-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-}
-
-.post-experiment .post-content {
-  border-left: 4px solid #333;
-  padding-left: 2rem;
-}
-</style>
