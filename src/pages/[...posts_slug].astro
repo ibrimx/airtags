@@ -1,5 +1,4 @@
 ---
-import type { CollectionEntry } from "astro:content"
 import { getCollection, render } from "astro:content"
 
 import Layout from "@/layouts/Layout.astro"
@@ -54,10 +53,12 @@ const previewSecret = import.meta.env.PREVIEW_SECRET
 const preview =
   Astro.url.searchParams.get("preview") === previewSecret
 
+const siteUrl = Astro.url.origin
+
 let title = ""
 let description = ""
 let cover = ""
-let publishDate: string | undefined
+let publishDate: string | Date | undefined
 let contentType = "essay"
 let tags: string[] = []
 
@@ -82,12 +83,14 @@ if (source === "markdown") {
   Content = rendered.Content
   headings = rendered.headings
 
-  title = post.data.title
-  description = post.data.description ?? ""
-  cover = post.data.cover ?? ""
-  publishDate = post.data.published
-  contentType = post.data.contentType ?? "essay"
-  tags = post.data.tags ?? []
+  const data = post.data as any
+
+  title = data.title
+  description = data.description ?? ""
+  cover = data.cover ?? ""
+  publishDate = data.published
+  contentType = data.contentType ?? "essay"
+  tags = data.tags ?? []
 }
 
 /* ========= NOTION ========= */
@@ -109,12 +112,12 @@ if (source === "notion") {
 }
 
 /* ============================
-   SEO + OG + STRUCTURED DATA
+   SEO + STRUCTURED DATA
 ============================ */
 
 const layoutClass = `post-${contentType}`
 const seoTitle = `${title} | ${siteConfig.siteName}`
-const url = `${siteConfig.siteUrl}/posts/${slug}/`
+const url = `${siteUrl}/posts/${slug}/`
 const ogImage = cover || siteConfig.ogImage
 
 function generateSchema() {
@@ -124,12 +127,18 @@ function generateSchema() {
     headline: title,
     description,
     image: ogImage,
-    datePublished: publishDate,
-    dateModified: publishDate,
+    datePublished:
+      publishDate instanceof Date
+        ? publishDate.toISOString()
+        : publishDate,
+    dateModified:
+      publishDate instanceof Date
+        ? publishDate.toISOString()
+        : publishDate,
     author: {
       "@type": "Person",
-      name: siteConfig.authorName,
-      url: siteConfig.siteUrl,
+      name: siteConfig.siteName,
+      url: siteUrl,
     },
     publisher: {
       "@type": "Organization",
@@ -165,13 +174,13 @@ const breadcrumbSchema = {
       "@type": "ListItem",
       position: 1,
       name: "Home",
-      item: siteConfig.siteUrl,
+      item: siteUrl,
     },
     {
       "@type": "ListItem",
       position: 2,
       name: "Posts",
-      item: `${siteConfig.siteUrl}/posts/`,
+      item: `${siteUrl}/posts/`,
     },
     {
       "@type": "ListItem",
@@ -187,15 +196,14 @@ const breadcrumbSchema = {
   postTitle={seoTitle}
   postDescription={description}
   postImage={ogImage}
-  postSlug={`/posts/${slug}/`}
+  postSlug={slug}
 >
 
-  <!-- Structured Data -->
-  <script type="application/ld+json">
+  <script type="application/ld+json" is:inline>
     {JSON.stringify(generateSchema())}
   </script>
 
-  <script type="application/ld+json">
+  <script type="application/ld+json" is:inline>
     {JSON.stringify(breadcrumbSchema)}
   </script>
 
@@ -210,7 +218,11 @@ const breadcrumbSchema = {
     <h1>{title}</h1>
 
     {publishDate && (
-      <time datetime={publishDate}>
+      <time datetime={
+        publishDate instanceof Date
+          ? publishDate.toISOString()
+          : publishDate
+      }>
         {new Date(publishDate).toLocaleDateString()}
       </time>
     )}
