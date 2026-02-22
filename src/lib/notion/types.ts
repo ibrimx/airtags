@@ -8,11 +8,26 @@ export interface Post {
   date?: string
 }
 
+
+// S I T E - C O N F I G 
 export interface SiteConfig {
-  title: string
-  description?: string
-  logo?: string
+  siteName: string
+  tagline?: string
+  primaryColor?: string
+  accentColor?: string
+  defaultTheme?: "light" | "dark"
+  seoTitle?: string
+  seoDescription?: string
+  ogImage?: string | null
+  logo?: string | null
+  favicon?: string | null
+  footerText?: string
+  twitter?: string
+  instagram?: string
+  github?: string
 }
+
+
 
 // S T O R I S E
 export interface StoryItem {
