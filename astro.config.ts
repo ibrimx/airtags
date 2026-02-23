@@ -53,7 +53,13 @@ export default defineConfig({
     defaultLocale,
   },
   integrations: [
-    UnoCSS({ injectReset: true }),
+    UnoCSS({
+  injectReset: true,
+  transformers: [
+    transformerDirectives(),
+    transformerAttributifyJsx(),
+  ],
+}),
     mdx(),
     partytown({
       config: {
