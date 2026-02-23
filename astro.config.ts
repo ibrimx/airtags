@@ -10,6 +10,8 @@ import rehypeSlug from 'rehype-slug'
 import remarkDirective from 'remark-directive'
 import remarkMath from 'remark-math'
 import UnoCSS from 'unocss/astro'
+import transformerAttributifyJsx from '@unocss/transformer-attributify-jsx'
+import transformerDirectives from '@unocss/transformer-directives'
 import path from 'node:path'
 
 import { base, defaultLocale, themeConfig } from './src/config'
