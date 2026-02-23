@@ -10,7 +10,6 @@ import rehypeSlug from 'rehype-slug'
 import remarkDirective from 'remark-directive'
 import remarkMath from 'remark-math'
 import UnoCSS from 'unocss/astro'
-import transformerDirectives from '@unocss/transformer-directives'
 import path from 'node:path'
 
 import { base, defaultLocale, themeConfig } from './src/config'
@@ -39,11 +38,14 @@ export default defineConfig({
   site,
   base,
   trailingSlash: 'always',
+
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'viewport',
   },
+
   ...imageConfig,
+
   i18n: {
     locales: Object.entries(langMap).map(([path, codes]) => ({
       path,
@@ -51,18 +53,22 @@ export default defineConfig({
     })),
     defaultLocale,
   },
+
   integrations: [
     UnoCSS({
-  injectReset: true,
-  ],
-}),
+      injectReset: true,
+    }),
+
     mdx(),
+
     partytown({
       config: {
         forward: ['dataLayer.push', 'gtag'],
       },
     }),
+
     sitemap(),
+
     Compress({
       CSS: true,
       HTML: true,
@@ -70,8 +76,10 @@ export default defineConfig({
       JavaScript: true,
       SVG: false,
     }),
+
     react(),
   ],
+
   markdown: {
     remarkPlugins: [
       remarkDirective,
@@ -100,6 +108,7 @@ export default defineConfig({
       },
     },
   },
+
   vite: {
     resolve: {
       alias: {
@@ -116,9 +125,11 @@ export default defineConfig({
       },
     ],
   },
+
   devToolbar: {
     enabled: false,
   },
+
   server: {
     headers: {
       'Access-Control-Allow-Origin': 'https://giscus.app',
