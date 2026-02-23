@@ -13,20 +13,8 @@ const { light, dark } = themeConfig.color
 
 export default defineConfig({
   transformers: [
-    transformerDirectives(),     // ← هذا هو المهم لدعم --at-apply
+    transformerDirectives(),
     transformerVariantGroup(),
-  ],
-
-  safelist: [
-    'text-7',
-    'text-6',
-    'text-5',
-    'text-4.5',
-    'text-4',
-    'c-primary',
-    'c-secondary',
-    'bg-secondary/5',
-    'border-secondary/25',
   ],
 
   presets: [
@@ -48,6 +36,18 @@ export default defineConfig({
     }) as Preset<object>,
   ],
 
+  safelist: [
+    'text-7',
+    'text-6',
+    'text-5',
+    'text-4.5',
+    'text-4',
+    'c-primary',
+    'c-secondary',
+    'bg-secondary/5',
+    'border-secondary/25',
+  ],
+
   theme: {
     colors: {
       ...light,
@@ -66,16 +66,22 @@ export default defineConfig({
   },
 
   rules: [
-    ['scrollbar-hidden', {
-      'scrollbar-width': 'none',
-      '-ms-overflow-style': 'none',
-    }],
+    [
+      'scrollbar-hidden',
+      {
+        'scrollbar-width': 'none',
+        '-ms-overflow-style': 'none',
+      },
+    ],
   ],
 
   shortcuts: {
-    'uno-desktop-column': 'fixed right-[max(5rem,calc(50vw-35rem))] w-14rem',
-    'uno-decorative-line': 'mb-4.5 h-0.25 w-10 bg-secondary/25 lg:(mb-6 w-11)',
-    'uno-round-border': 'border border-secondary/5 rounded border-solid',
+    'uno-desktop-column':
+      'fixed right-[max(5rem,calc(50vw-35rem))] w-14rem',
+    'uno-decorative-line':
+      'mb-4.5 h-0.25 w-10 bg-secondary/25 lg:(mb-6 w-11)',
+    'uno-round-border':
+      'border border-secondary/5 rounded border-solid',
   },
 
   variants: [
@@ -84,7 +90,8 @@ export default defineConfig({
 
       return {
         matcher: matcher.slice(4),
-        selector: s => `${s}:is(:lang(zh), :lang(ja), :lang(ko))`,
+        selector: (s) =>
+          `${s}:is(:lang(zh), :lang(ja), :lang(ko))`,
       }
     },
   ],
